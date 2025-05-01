@@ -5,16 +5,19 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"log/slog"
 	"os"
 	"strconv"
 	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	_ "github.com/joho/godotenv/autoload"
+	"github.com/pressly/goose/v3"
 )
 
 // Service represents a service that interacts with a database.
 type Service interface {
+	Up() error
 	// Health returns a map of health status information.
 	// The keys and values in the map are service-specific.
 	Health() map[string]string
@@ -52,6 +55,21 @@ func New() Service {
 		db: db,
 	}
 	return dbInstance
+}
+
+func (s *service) Up() error {
+	if err := goose.SetDialect("postgres"); err != nil {
+		slog.Error("Failed to select dialect", "err", err)
+		return err
+	}
+
+	if err := goose.Up(s.db, "internal/database/migrations"); err != nil {
+		slog.Error("Failed run migrations", "err", err)
+		return err
+	}
+
+	slog.Info("Migrations completed successfully")
+	return nil
 }
 
 // Health checks the health of the database connection by pinging the database.
