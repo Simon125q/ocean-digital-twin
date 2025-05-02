@@ -24,6 +24,12 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	r.Get("/", s.HelloWorldHandler)
 
+	r.Route("/count", func(r chi.Router) {
+		r.Get("/", s.GetCountHandler)
+		r.Put("/", s.UpdateCountHandler)
+		r.Post("/", s.NewCountHandler)
+	})
+
 	r.Get("/health", s.healthHandler)
 
 	return r

@@ -19,6 +19,8 @@ import (
 type Service interface {
 	// Operations
 	GetCount() int
+	UpdateCount(int) error
+	NewCount() (int, error)
 
 	// Health returns a map of health status information.
 	// The keys and values in the map are service-specific.

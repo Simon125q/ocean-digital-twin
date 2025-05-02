@@ -25,9 +25,9 @@ func (s *service) UpdateCount(newCount int) error {
 	query := `
     UPDATE test
     SET count = $1
-    WHERE id = $2
+    WHERE id = (SELECT MAX(id) FROM test)
     `
-	_, err := s.db.Exec(query, newCount, 1)
+	_, err := s.db.Exec(query, newCount)
 	if err != nil {
 		return fmt.Errorf("error updating count: %w", err)
 	}
