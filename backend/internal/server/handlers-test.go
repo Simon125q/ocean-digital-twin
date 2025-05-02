@@ -17,7 +17,7 @@ func (s *Server) UpdateCountHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		s.respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("err: %v", err))
 	}
-	s.respondWithJSON(w, http.StatusOK, count+1)
+	s.respondWithJSON(w, http.StatusOK, map[string]int{"count": count + 1})
 }
 
 func (s *Server) NewCountHandler(w http.ResponseWriter, r *http.Request) {
@@ -26,5 +26,5 @@ func (s *Server) NewCountHandler(w http.ResponseWriter, r *http.Request) {
 		slog.Error("Error creating new count", "err", err)
 		s.respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("Coudnt create new count: %v", err))
 	}
-	s.respondWithJSON(w, http.StatusOK, "")
+	s.respondWithJSON(w, http.StatusOK, map[string]string{"message": ""})
 }
