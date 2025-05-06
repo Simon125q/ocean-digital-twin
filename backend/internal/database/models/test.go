@@ -1,4 +1,4 @@
-package database
+package models
 
 type Test struct {
 	ID    int `json:"id"`

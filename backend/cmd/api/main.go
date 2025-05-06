@@ -4,12 +4,14 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
 	"os/signal"
 	"syscall"
 	"time"
 
 	"ocean-digital-twin/internal/server"
+	"ocean-digital-twin/internal/utils/erddap"
 )
 
 func gracefulShutdown(apiServer *http.Server, done chan bool) {
@@ -37,6 +39,19 @@ func gracefulShutdown(apiServer *http.Server, done chan bool) {
 }
 
 func main() {
+	minLat := 40.83
+	minLon := 1.10
+	maxLat := 41.26
+	maxLon := 2.53
+	endTime := time.Now().UTC()
+	startTime := endTime.Add(-7 * 24 * time.Hour)
+	logger := slog.Default()
+	downloader := erddap.NewDownloader(logger, minLat, minLon, maxLat, maxLon)
+	data, err := downloader.DownloadChlorophyllData(context.Background(), startTime, endTime)
+	if err != nil {
+		slog.Error("error downloading chlor data", "err", err)
+	}
+	fmt.Println(len(data))
 
 	log.Println("Getting new server...")
 	server := server.NewServer()
@@ -49,7 +64,7 @@ func main() {
 	go gracefulShutdown(server, done)
 
 	log.Printf("Starting server on port%v...\n", server.Addr)
-	err := server.ListenAndServe()
+	err = server.ListenAndServe()
 	log.Println("Started server on port", server.Addr)
 	if err != nil && err != http.ErrServerClosed {
 		panic(fmt.Sprintf("http server error: %s", err))
