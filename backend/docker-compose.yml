@@ -1,6 +1,10 @@
 services:
   psql_bp:
-    image: postgres:latest
+    build:
+      context: ./docker/postgres
+      dockerfile: Dockerfile
+    # image: postgis/postgis:15-3.5
+    # image: postgres:latest
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${BLUEPRINT_DB_DATABASE}
@@ -9,7 +13,18 @@ services:
     ports:
       - "${BLUEPRINT_DB_PORT}:5432"
     volumes:
-      - psql_volume_bp:/var/lib/postgresql/data
+      - psql_postgis_v3_volume_bp:/var/lib/postgresql/data
+    command:
+      [
+        "postgres",
+        "-c",
+        "shared_preload_libraries=pg_cron",
+        "-c",
+        "cron.database_name=${BLUEPRINT_DB_DATABASE}",
+      ]
 
 volumes:
+  psql_postgis_v3_volume_bp:
+  psql_postgis_v2_volume_bp:
+  psql_postgis_volume_bp:
   psql_volume_bp:
