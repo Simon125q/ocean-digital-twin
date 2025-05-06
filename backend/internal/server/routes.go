@@ -30,6 +30,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Post("/", s.NewCountHandler)
 	})
 
+	r.Get("/save", s.SaveDataTest)
 	r.Get("/health", s.healthHandler)
 
 	return r

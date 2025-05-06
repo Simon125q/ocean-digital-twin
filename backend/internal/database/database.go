@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"log/slog"
+	"ocean-digital-twin/internal/database/models"
 	"os"
 	"strconv"
 	"time"
@@ -18,6 +19,8 @@ import (
 // Service represents a service that interacts with a database.
 type Service interface {
 	// Operations
+	SaveChlorophyllData(ctx context.Context, data []models.ChlorophyllData) error
+
 	GetCount() int
 	UpdateCount(int) error
 	NewCount() (int, error)
