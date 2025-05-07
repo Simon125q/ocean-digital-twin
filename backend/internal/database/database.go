@@ -21,6 +21,7 @@ type Service interface {
 	// Operations
 	SaveChlorophyllData(ctx context.Context, data []models.ChlorophyllData) error
 	GetChlorophyllData(ctx context.Context, startTime, endTime time.Time, minLat, minLon, maxLat, maxLon float64) ([]models.ChlorophyllData, error)
+	GetLatestChlorophyllTimestamp(ctx context.Context) (time.Time, error)
 
 	GetCount() int
 	UpdateCount(int) error

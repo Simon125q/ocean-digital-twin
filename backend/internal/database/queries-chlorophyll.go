@@ -35,8 +35,8 @@ func (s *service) GetChlorophyllData(ctx context.Context, startTime, endTime tim
 	query := `
         SELECT 
             measurement_time,
-            ST_Y(location::geography) as latitude,
-            ST_X(location::geography) as longitude,
+            ST_Y(location::geometry) as latitude,
+            ST_X(location::geometry) as longitude,
             chlor_a,
             created_at
         FROM
@@ -48,7 +48,7 @@ func (s *service) GetChlorophyllData(ctx context.Context, startTime, endTime tim
                 ST_MakeEnvelope(
                     $3, $4, $5, $6, 4326
                 )
-            ) 
+            )
         ORDER BY
             measurement_time
         `

@@ -31,6 +31,8 @@ func (s *Server) RegisterRoutes() http.Handler {
 	})
 
 	r.Get("/save", s.SaveDataTest)
+	r.Get("/get", s.GetDataTest)
+	r.Get("/last_time", s.GetDataLastTimeTest)
 	r.Get("/health", s.healthHandler)
 
 	return r
