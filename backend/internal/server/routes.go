@@ -30,6 +30,10 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Post("/", s.NewCountHandler)
 	})
 
+	r.Route("/chlorophyll", func(r chi.Router) {
+		r.Get("/", s.GetChlorophyllDataHandler)
+	})
+
 	r.Get("/save", s.SaveDataTest)
 	r.Get("/get", s.GetDataTest)
 	r.Get("/last_time", s.GetDataLastTimeTest)
