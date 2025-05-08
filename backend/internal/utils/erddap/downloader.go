@@ -11,9 +11,9 @@ import (
 )
 
 const (
+	ChlorDatasetID     = "noaacwNPPVIIRSchlaDaily"
 	erddapBaseURL      = "https://coastwatch.noaa.gov/erddap/griddap/"
 	erddapInfoBaseURL  = "https://coastwatch.noaa.gov/erddap/info/"
-	chlorDatasetID     = "noaacwNPPVIIRSchlaDaily"
 	fileType           = "nc"
 	tempDir            = "tmp/erddap"
 	defaultHTTPTimeout = 1500 * time.Second
