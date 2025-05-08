@@ -120,4 +120,4 @@ make watch          # Run the application with live reloading (for development)
 make clean          # Clean up the generated binary
 ```
 
----
+## Additional information regarding developement together with examples are present in `/docs`
