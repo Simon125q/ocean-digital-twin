@@ -16,14 +16,14 @@ func (d *Downloader) DownloadChlorophyllData(ctx context.Context, startTime, end
 	if err := os.MkdirAll(tempDir, 0755); err != nil {
 		return nil, fmt.Errorf("failed to create temp directory: %w", err)
 	}
-	maxTime, err := d.GetLatestDataTime(ctx, chlorDatasetID)
+	maxTime, err := d.GetLatestDataTime(ctx, ChlorDatasetID)
 	if err != nil {
 		return nil, err
 	}
 	if endTime.After(maxTime) {
 		endTime = maxTime
 	}
-	url := d.buildURL(startTime, endTime, chlorDatasetID)
+	url := d.buildURL(startTime, endTime, ChlorDatasetID)
 	d.logger.Info("Downloading chlorophyll data", "url", url)
 
 	tempFile := filepath.Join(tempDir, fmt.Sprintf("chlor_%s_%s.nc",
