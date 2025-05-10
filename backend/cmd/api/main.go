@@ -41,7 +41,7 @@ func main() {
 	updater := scheduler.NewUpdater(
 		dbService,
 		logger,
-		1*time.Hour,
+		24*time.Hour,
 		minLat,
 		minLon,
 		maxLat,
