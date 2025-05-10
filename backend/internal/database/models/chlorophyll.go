@@ -16,6 +16,14 @@ type ChlorophyllData struct {
 	CreatedAt       time.Time `json:"created_at"`
 }
 
+func (c *ChlorophyllData) Value() float32 {
+	return c.ChlorophyllA
+}
+
+func (c *ChlorophyllData) SetValue(val float32) {
+	c.ChlorophyllA = val
+}
+
 func ToGeoJSON(data []ChlorophyllData) *geojson.FeatureCollection {
 	fc := geojson.NewFeatureCollection()
 
