@@ -7,7 +7,7 @@ import (
 	"ocean-digital-twin/internal/database"
 )
 
-type InterpolableData interface {
+type InterpolatableData interface {
 	Value() float32
 	SetValue(float32)
 }
@@ -24,7 +24,7 @@ func NewInterpolator(db database.Service, logger *slog.Logger) *Interpolator {
 	}
 }
 
-func (i *Interpolator) Run(ctx context.Context) error {
+func (i *Interpolator) RunChlorophyllInterpolation(ctx context.Context) error {
 	i.logger.Info("Starting interpolation of data")
 
 	points, err := i.db.GetAllChlorophyllLocations(ctx)
@@ -38,7 +38,7 @@ func (i *Interpolator) Run(ctx context.Context) error {
 		if err != nil {
 			i.logger.Error("error geting chlor data at location", "loc", p, "err", err)
 		}
-		interpolableDataSlice := make([]InterpolableData, len(chlorData))
+		interpolableDataSlice := make([]InterpolatableData, len(chlorData))
 		for i := range chlorData {
 			interpolableDataSlice[i] = &chlorData[i]
 		}
@@ -49,7 +49,7 @@ func (i *Interpolator) Run(ctx context.Context) error {
 	return nil
 }
 
-func (ip *Interpolator) interpolateLinearyDataRow(data []InterpolableData) {
+func (ip *Interpolator) interpolateLinearyDataRow(data []InterpolatableData) {
 	if len(data) < 3 {
 		return
 	}

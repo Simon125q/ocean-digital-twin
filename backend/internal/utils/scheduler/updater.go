@@ -58,6 +58,5 @@ func (u *Updater) Start(ctx context.Context) {
 
 func (u *Updater) update(ctx context.Context) {
 	u.updateChlorophyllData(ctx)
-
-	u.interpolator.Run(ctx)
+	u.interpolator.RunChlorophyllInterpolation(ctx)
 }
