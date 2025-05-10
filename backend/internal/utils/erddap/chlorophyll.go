@@ -96,14 +96,23 @@ func (d *Downloader) processChlorophyllFile(filePath string) ([]models.Chlorophy
 		for latIdx, lat := range lats {
 			for lonIdx, lon := range lons {
 				chlorValue := chlorData[timeIdx][0][latIdx][lonIdx]
-				if !isNaN(float64(chlorValue)) {
-					result = append(result, models.ChlorophyllData{
-						MeasurementTime: t,
-						Latitude:        float64(lat),
-						Longitude:       float64(lon),
-						ChlorophyllA:    chlorValue,
-					})
-				}
+				// if !isNaN(float64(chlorValue)) {
+				result = append(result, models.ChlorophyllData{
+					MeasurementTime: t,
+					Latitude:        float64(lat),
+					Longitude:       float64(lon),
+					ChlorophyllA:    chlorValue,
+				})
+				// } else {
+				// 	var nullVal sql.NullFloat64
+				// 	nullVal.Valid = false
+				// 	result = append(result, models.ChlorophyllData{
+				// 		MeasurementTime: t,
+				// 		Latitude:        float64(lat),
+				// 		Longitude:       float64(lon),
+				// 		ChlorophyllA:    nullVal,
+				// 	})
+				// }
 			}
 		}
 	}

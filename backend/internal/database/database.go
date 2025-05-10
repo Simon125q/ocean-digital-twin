@@ -13,6 +13,7 @@ import (
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	_ "github.com/joho/godotenv/autoload"
+	"github.com/paulmach/orb"
 	"github.com/pressly/goose/v3"
 )
 
@@ -22,6 +23,8 @@ type Service interface {
 	SaveChlorophyllData(ctx context.Context, data []models.ChlorophyllData) error
 	GetChlorophyllData(ctx context.Context, startTime, endTime time.Time, minLat, minLon, maxLat, maxLon float64) ([]models.ChlorophyllData, error)
 	GetLatestChlorophyllTimestamp(ctx context.Context) (time.Time, error)
+	GetAllChlorophyllLocations(ctx context.Context) ([]orb.Point, error)
+	GetChlorophyllDataAtLocation(ctx context.Context, point orb.Point) ([]models.ChlorophyllData, error)
 
 	GetCount() int
 	UpdateCount(int) error

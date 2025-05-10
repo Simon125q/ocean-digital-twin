@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"ocean-digital-twin/internal/database/models"
 	"time"
+
+	"github.com/paulmach/orb"
+	"github.com/paulmach/orb/encoding/wkb"
 )
 
 func (s *service) SaveChlorophyllData(ctx context.Context, data []models.ChlorophyllData) error {
@@ -87,4 +90,81 @@ func (s *service) GetLatestChlorophyllTimestamp(ctx context.Context) (time.Time,
 		return time.Time{}, fmt.Errorf("error scanning row: %w", err)
 	}
 	return result, nil
+}
+
+func (s *service) GetAllChlorophyllLocations(ctx context.Context) ([]orb.Point, error) {
+	query := `
+        SELECT DISTINCT ST_AsBinary(location) as geom
+        FROM chlorophyll_data
+    `
+	rows, err := s.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("error finding locations: %w", err)
+	}
+	defer rows.Close()
+
+	var locations []orb.Point
+	for rows.Next() {
+		var geomBytes []byte
+		if err := rows.Scan(&geomBytes); err != nil {
+			return nil, fmt.Errorf("error scanning location with gap: %w", err)
+		}
+		geom, err := wkb.Unmarshal(geomBytes)
+		if err != nil {
+			return nil, fmt.Errorf("error unmarshalling location point: %w", err)
+		}
+		point, ok := geom.(orb.Point)
+		if !ok {
+			return nil, fmt.Errorf("expected geometry point, got %T", geom)
+		}
+		locations = append(locations, point)
+	}
+	return locations, nil
+}
+
+func (s *service) GetChlorophyllDataAtLocation(ctx context.Context, point orb.Point) ([]models.ChlorophyllData, error) {
+	query := `
+        SELECT 
+            id,
+            measurement_time,
+            ST_Y(location::geometry) as latitude,
+            ST_X(location::geometry) as longitude,
+            chlor_a,
+            created_at
+        FROM
+            chlorophyll_data
+        WHERE
+            ST_Equals(
+                location::geometry,
+                ST_SetSRID(
+                    ST_MakePoint($1, $2),
+                    4326
+                )
+            )
+        ORDER BY
+            measurement_time
+    `
+	rows, err := s.db.QueryContext(ctx, query, point[0], point[1])
+	if err != nil {
+		return nil, fmt.Errorf("error finding chlorophyll data at point (%f, %f): %w",
+			point[0], point[1], err)
+	}
+	defer rows.Close()
+
+	var results []models.ChlorophyllData
+	for rows.Next() {
+		var data models.ChlorophyllData
+
+		if err := rows.Scan(&data.ID, &data.MeasurementTime, &data.Latitude, &data.Longitude, &data.ChlorophyllA, &data.CreatedAt); err != nil {
+			return nil, fmt.Errorf("error scanning chlorophyll data: %w", err)
+		}
+
+		results = append(results, data)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating rows: %w", err)
+	}
+
+	return results, nil
 }
