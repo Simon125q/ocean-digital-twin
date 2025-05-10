@@ -168,3 +168,18 @@ func (s *service) GetChlorophyllDataAtLocation(ctx context.Context, point orb.Po
 
 	return results, nil
 }
+
+func (s *service) UpdateChlorophyllData(ctx context.Context, data []models.ChlorophyllData) error {
+	query := `
+        UPDATE
+        SET chlor_a = $1
+        WHERE id = $2
+    `
+	for _, d := range data {
+		_, err := s.db.ExecContext(ctx, query, d.ChlorophyllA, d.ID)
+		if err != nil {
+			return fmt.Errorf("error updating chlor_a: %w", err)
+		}
+	}
+	return nil
+}

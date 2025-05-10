@@ -27,37 +27,24 @@ func NewInterpolator(db database.Service, logger *slog.Logger) *Interpolator {
 func (i *Interpolator) Run(ctx context.Context) error {
 	i.logger.Info("Starting interpolation of data")
 
-	//TODO: implement logic
-	// endTime := time.Now().UTC()
-	// startTime := endTime.Add(-7 * 24 * time.Hour)
-	// minLat := 40.83
-	// minLon := 1.10
-	// maxLat := 41.26
-	// maxLon := 2.53
 	points, err := i.db.GetAllChlorophyllLocations(ctx)
 	if err != nil {
 		i.logger.Error("error geting chlor locations", "err", err)
-	}
-	// for _, c := range points {
-	// 	i.logger.Info("chlor_a", "lat", c.Lat(), "lon", c.Lon())
-	//
-	// }
-	chlorData, err := i.db.GetChlorophyllDataAtLocation(ctx, points[1])
-	if err != nil {
-		i.logger.Error("error geting chlor data at location", "err", err)
-	}
-	for _, d := range chlorData {
-		i.logger.Info("chlor data before", "time", d.MeasurementTime, "id", d.ID, "val", d.ChlorophyllA)
-	}
-	middleDataSlice := make([]InterpolableData, len(chlorData))
-	for i := range chlorData {
-		middleDataSlice[i] = &chlorData[i]
-	}
-	i.interpolateLinearyDataRow(middleDataSlice)
-	for _, d := range chlorData {
-		i.logger.Info("chlor data after", "time", d.MeasurementTime, "id", d.ID, "val", d.ChlorophyllA)
+		return err
 	}
 	i.logger.Info("Success getting location points", "count", len(points))
+	for _, p := range points {
+		chlorData, err := i.db.GetChlorophyllDataAtLocation(ctx, p)
+		if err != nil {
+			i.logger.Error("error geting chlor data at location", "loc", p, "err", err)
+		}
+		interpolableDataSlice := make([]InterpolableData, len(chlorData))
+		for i := range chlorData {
+			interpolableDataSlice[i] = &chlorData[i]
+		}
+		i.interpolateLinearyDataRow(interpolableDataSlice)
+		i.db.UpdateChlorophyllData(ctx, chlorData)
+	}
 	i.logger.Info("Interpolation of data completed")
 	return nil
 }
@@ -68,12 +55,14 @@ func (ip *Interpolator) interpolateLinearyDataRow(data []InterpolableData) {
 	}
 	for i := 0; i < len(data); i++ {
 		if math.IsNaN(float64(data[i].Value())) {
+			// If only 1 value in a row is missing fill it with the average of surrounding values
 			if i > 0 && i < len(data)-1 &&
 				!math.IsNaN(float64(data[i-1].Value())) && !math.IsNaN(float64(data[i+1].Value())) {
 				data[i].SetValue((data[i-1].Value() + data[i+1].Value()) / 2.0)
 				continue
 			}
 
+			// If more than 1 value in a row is missing interpolate the missing values
 			if i > 0 && !math.IsNaN(float64(data[i-1].Value())) {
 				gapEndIndex := -1
 				for k := i + 1; k < len(data); k++ {
@@ -88,9 +77,7 @@ func (ip *Interpolator) interpolateLinearyDataRow(data []InterpolableData) {
 					gapLength := gapEndIndex - (i - 1)
 					for l := i; l < gapEndIndex; l++ {
 						step := l - (i - 1)
-						ip.logger.Info("Setting new vals", "val before", data[l].Value())
 						data[l].SetValue(startValue + (endValue-startValue)*float32(step)/float32(gapLength))
-						ip.logger.Info("Setting new vals", "val after", data[l].Value())
 					}
 					i = gapEndIndex - 1
 					continue

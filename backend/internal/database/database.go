@@ -25,6 +25,7 @@ type Service interface {
 	GetLatestChlorophyllTimestamp(ctx context.Context) (time.Time, error)
 	GetAllChlorophyllLocations(ctx context.Context) ([]orb.Point, error)
 	GetChlorophyllDataAtLocation(ctx context.Context, point orb.Point) ([]models.ChlorophyllData, error)
+	UpdateChlorophyllData(ctx context.Context, data []models.ChlorophyllData) error
 
 	GetCount() int
 	UpdateCount(int) error
