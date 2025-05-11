@@ -16,10 +16,11 @@ import (
 )
 
 const (
-	minLat = 40.83
-	minLon = 1.10
-	maxLat = 41.26
-	maxLon = 2.53
+	minLat         = 40.83
+	minLon         = 1.10
+	maxLat         = 41.26
+	maxLon         = 2.53
+	updateInterval = 24 * time.Hour
 )
 
 func main() {
@@ -41,7 +42,7 @@ func main() {
 	updater := scheduler.NewUpdater(
 		dbService,
 		logger,
-		24*time.Hour,
+		updateInterval,
 		minLat,
 		minLon,
 		maxLat,

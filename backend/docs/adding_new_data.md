@@ -121,3 +121,5 @@ Create handlers to expose the new data source through the API.
 Add the routes for your new data source to the main router in `backend/internal/server/routes.go`.
 
 ---
+
+Information on data interpolation and how to add new data to be interpolated can be found in `docs/interpolation.md`

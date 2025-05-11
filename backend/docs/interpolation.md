@@ -70,3 +70,4 @@ While `interpolateLinearyDataRow` provides the current interpolation logic, you 
 1.  Define a new function that takes a slice of `InterpolatableData` (or a similar interface if your new method requires different capabilities) and applies your desired interpolation algorithm.
 2.  Integrate this new function into the `Interpolator` (or a new interpolation service) and expose it through appropriate methods.
 3.  Update the relevant data processing workflows to use your new interpolation function.
+4.  Preferably implement tests to guarantee correct functioning of new method.
