@@ -1,21 +1,10 @@
 <script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
-import Counter from './components/test/Counter.vue'
+import OceanMap from './components/map/OceanMap.vue'
+
 </script>
 
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it! It works now!" />
-    </div>
-  </header>
-
-  <main>
-    <Counter/>
-  </main>
+  <OceanMap/>
 </template>
 
 <style scoped>
