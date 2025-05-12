@@ -1,6 +1,7 @@
 package models
 
 import (
+	"math"
 	"time"
 
 	"github.com/paulmach/orb"
@@ -30,12 +31,14 @@ func ToGeoJSON(data []ChlorophyllData) *geojson.FeatureCollection {
 	for _, d := range data {
 		point := orb.Point{d.Longitude, d.Latitude}
 		feature := geojson.NewFeature(point)
-		feature.Properties = map[string]interface{}{
-			"id":               d.ID,
-			"measurement_time": d.MeasurementTime,
-			"chlor_a":          d.ChlorophyllA,
+		if !math.IsNaN(float64(d.ChlorophyllA)) {
+			feature.Properties = map[string]interface{}{
+				"id":               d.ID,
+				"measurement_time": d.MeasurementTime,
+				"chlor_a":          d.ChlorophyllA,
+			}
+			fc.Append(feature)
 		}
-		fc.Append(feature)
 	}
 	return fc
 }

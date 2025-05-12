@@ -72,5 +72,8 @@ func (s *Server) GetChlorophyllDataHandler(w http.ResponseWriter, r *http.Reques
 	geojsonData := models.ToGeoJSON(data)
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(geojsonData)
+	err = json.NewEncoder(w).Encode(geojsonData)
+	if err != nil {
+		http.Error(w, "Error transforming chlorophyll data: "+err.Error(), http.StatusInternalServerError)
+	}
 }
