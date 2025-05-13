@@ -1,13 +1,20 @@
 <template>
-  <div ref="mapContainer" class="map-container"></div>
+  <div class="map-wrapper">
+    <div ref="mapContainer" class="map-container"></div>
+    <TimelineSlider
+        :availableDates="availableDates"
+        :onChange="handleDateChange"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
-import mapboxgl, {Map, NavigationControl, GeoJSONSource } from 'mapbox-gl';
+import { ref, onMounted, onUnmounted, Ref, computed } from 'vue';
+import mapboxgl, {Map as MapboxMap, NavigationControl, GeoJSONSource } from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { fetchChlorophyllData } from '@/services/chlorophyllService';
-import type { ChlorophyllFeatureCollection } from '@/types/chlorophyll';
+import type { ChlorophyllFeatureCollection, ChlorophyllFeatureProperties } from '@/types/chlorophyll';
+import TimelineSlider from './TimelineSlider.vue'
 
 const mapboxAccessToken: string | undefined = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
@@ -18,14 +25,74 @@ if (!mapboxAccessToken) {
 }
 
 const mapContainer: Ref<HTMLDivElement | null> = ref(null);
-let mapInstance: Map | null = null;
+let mapInstance: MapboxMap | null = null;
 
 const SOURCE_ID = 'chlorophyll-source';
 const LAYER_ID = 'chlorophyll-layer';
 
-async function loadChlorophyllData(map: Map) {
+const allChlorophyllData = ref<ChlorophyllFeatureCollection>({
+  type: 'FeatureCollection',
+  feature: []
+})
+
+const availableDates = ref<Date[]>([]);
+
+const selectedDate = ref<Date | null>(null);
+
+const filteredChlorophyllData = computed(() => {
+  if (!selectedDate.value || allChlorophyllData.value.features.length === 0) {
+    return {
+      type: 'FeatureCollection',
+      features: []
+    } as ChlorophyllFeatureCollection;
+  }
+  const selectedDateStr = selectedDate.value.toISOString().split('T')[0];
+  const filteredFeatures = allChlorophyllData.value.features.filter(feature => {
+    const featureData = new Date(feature.properties.measurement_time);
+    const featureDateStr = featureData.toISOString().split('T')[0];
+    return featureDateStr === selectedDateStr;
+  });
+  return {
+    type: 'FeatureCollection',
+    features: filteredFeatures
+  } as ChlorophyllfeatureCollection;
+});
+
+function extractAvailableDates(data: ChlorophyllFeatureCollection): Date[] {
+  const dateMap = new Map<string, Date>();
+
+  data.features.forEach(feature => {
+    const dateStr = feature.properties.measurement_time.split('T')[0]; // Get just the date part
+    if (!dateMap.has(dateStr)) {
+      dateMap.set(dateStr, new Date(feature.properties.measurement_time));
+    }
+  });
+
+  // Sort dates chronologically
+  return Array.from(dateMap.values()).sort((a, b) => a.getTime() - b.getTime());
+}
+
+function handleDateChange(date: Date) {
+  selectedDate.value = date;
+  updateMapData();
+}
+
+function updateMapData() {
+  if (!mapInstance || !mapInstance.getSource(SOURCE_ID)) return;
+
+  (mapInstance.getSource(SOURCE_ID) as GeoJSONSource).setData(filteredChlorophyllData.value);
+}
+
+async function loadChlorophyllData(map: MapboxMap) {
   try {
     const chlorophyllGeoJson = await fetchChlorophyllData();
+    allChlorophyllData.value = chlorophyllGeoJson;
+    availableDates.value = extractAvailableDates(chlorophyllGeoJson);
+
+    if (availableDates.value.length > 0) {
+      selectedDate.value = availableDates.value[0];
+    }
+
     if (map.getSource(SOURCE_ID)) {
       (map.getSource(SOURCE_ID) as GeoJSONSource).setData(chlorophyllGeoJson);
       console.log('Chlorophyll data source updated')
@@ -67,15 +134,12 @@ async function loadChlorophyllData(map: Map) {
       map.on('click', LAYER_ID, (e) => {
         if (e.features && e.features.length > 0) {
           const feature = e.features[0];
-          //TODO:
           const coordinates = (feature.geometry as GeoJSON.Point).coordinates.slice();
           const properties = feature.properties as ChlorophyllFeatureProperties;
 
-          //TODO:
           const chlorAValue = typeof properties.chlor_a === 'number' ?
           properties.chlor_a.toFixed(2) : 'N/A';
 
-          //TODO:
           const description =
           `
             <strong>Chlorophyll Data</strong><br>
@@ -116,7 +180,7 @@ onMounted(() => {
 
   if (mapContainer.value) {
     mapboxgl.accessToken = mapboxAccessToken;
-    mapInstance = new Map({
+    mapInstance = new MapboxMap({
       container: mapContainer.value, // container ID or HTML element
       style: 'mapbox://styles/mapbox/streets-v12', // style URL
       center: [1.6, 41.16], // starting position [lng, lat]
