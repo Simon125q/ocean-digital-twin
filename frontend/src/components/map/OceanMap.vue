@@ -4,6 +4,7 @@
     <TimelineSlider
         :availableDates="availableDates"
         :onChange="handleDateChange"
+        :key="availableDates.length"
     />
   </div>
 </template>
@@ -90,7 +91,7 @@ async function loadChlorophyllData(map: MapboxMap) {
     availableDates.value = extractAvailableDates(chlorophyllGeoJson);
 
     if (availableDates.value.length > 0) {
-      selectedDate.value = availableDates.value[0];
+      selectedDate.value = availableDates.value[availableDates.value.length - 1];
     }
 
     if (map.getSource(SOURCE_ID)) {
@@ -114,7 +115,7 @@ async function loadChlorophyllData(map: MapboxMap) {
             ['get', 'chlor_a'],
             0, 4,
             0.3, 8,
-            1, 15
+            1, 12
           ],
           'circle-color': [
             'interpolate',

@@ -41,7 +41,7 @@
 
   const props = defineProps<TimelineProps>();
 
-  const currentDateIndex = ref(0);
+  const currentDateIndex = ref(props.availableDates.length - 1);
   const isPlaying = ref(false);
   let animationInterval: number | null = null;
 
@@ -103,7 +103,7 @@ onMounted(() => {
   watch(() => props.availableDates, (newDates) => {
     if (newDates.length > 0 && currentDateIndex.value >= newDates.length) {
       currentDateIndex.value = newDates.length - 1;
-      props.onChange(newDates[0]);
+      props.onChange(newDates[currentDateIndex.value]);
     }
   }, { deep: true });
 
