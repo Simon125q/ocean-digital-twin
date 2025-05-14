@@ -32,7 +32,7 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, computed, onUnmounted, watch } from 'vue';
+  import { ref, computed, onUnmounted, onMounted, watch } from 'vue';
 
   interface TimelineProps {
     availableDates: Date[];
@@ -93,9 +93,16 @@
     }, 1000)
   }
 
+onMounted(() => {
+  if (props.availableDates.length > 0) {
+    currentDateIndex.value = props.availableDates.length - 1;
+    props.onChange(props.availableDates[currentDateIndex.value]);
+  }
+});
+
   watch(() => props.availableDates, (newDates) => {
     if (newDates.length > 0 && currentDateIndex.value >= newDates.length) {
-      currentDateIndex.value = 0;
+      currentDateIndex.value = newDates.length - 1;
       props.onChange(newDates[0]);
     }
   }, { deep: true });

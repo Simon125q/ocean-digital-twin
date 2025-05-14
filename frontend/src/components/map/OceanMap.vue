@@ -99,7 +99,7 @@ async function loadChlorophyllData(map: MapboxMap) {
     } else {
       map.addSource(SOURCE_ID, {
         type: 'geojson',
-        data: chlorophyllGeoJson,
+        data: filteredChlorophyllData.value,
       });
       console.log('Chlorophyll data source added')
 

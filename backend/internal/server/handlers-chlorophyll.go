@@ -19,7 +19,7 @@ func (s *Server) GetChlorophyllDataHandler(w http.ResponseWriter, r *http.Reques
 	maxLonStr := r.URL.Query().Get("max_lon")
 
 	endTime := time.Now().UTC()
-	startTime := endTime.Add(-7 * 24 * time.Hour)
+	startTime := endTime.Add(-14 * 24 * time.Hour)
 
 	if startTimeStr != "" {
 		parsedTime, err := time.Parse(time.RFC3339, startTimeStr)
