@@ -87,3 +87,85 @@ func (ip *Interpolator) interpolateLinearyDataRow(data []InterpolatableData) {
 	}
 	return
 }
+
+func (ip *Interpolator) interpolateDataArea(data [][]InterpolatableData) [][]InterpolatableData {
+	if len(data) == 0 || len(data[0]) == 0 {
+		return data
+	}
+
+	rows := len(data)
+	cols := len(data[0])
+
+	filledData := make([][]InterpolatableData, rows)
+	for i := range filledData {
+		filledData[i] = make([]InterpolatableData, cols)
+		copy(filledData[i], data[i])
+	}
+
+	visited := make([][]bool, rows)
+	for i := range visited {
+		visited[i] = make([]bool, cols)
+	}
+
+	// Directions for exploring neighbors (including diagonals)
+	dr := []int{-1, -1, -1, 0, 0, 1, 1, 1}
+	dc := []int{-1, 0, 1, -1, 1, -1, 0, 1}
+
+	for r := 0; r < rows; r++ {
+		for c := 0; c < cols; c++ {
+			if math.IsNaN(float64(filledData[r][c].Value())) && !visited[r][c] {
+				// Found an unvisited NaN, start exploring the group
+				groupCoords := make([][2]int, 0)
+				neighborValues := make([]float32, 0)
+				isSurrounded := true
+
+				// Use a queue for BFS
+				queue := [][2]int{{r, c}}
+				visited[r][c] = true
+				groupCoords = append(groupCoords, [2]int{r, c})
+
+				for len(queue) > 0 {
+					currR, currC := queue[0][0], queue[0][1]
+					queue = queue[1:]
+
+					// Explore neighbors
+					for i := 0; i < 8; i++ {
+						nR, nC := currR+dr[i], currC+dc[i]
+
+						// Check bounds
+						if nR < 0 || nR >= rows || nC < 0 || nC >= cols {
+							isSurrounded = false
+							continue
+						}
+
+						if math.IsNaN(float64(filledData[nR][nC].Value())) {
+							if !visited[nR][nC] {
+								visited[nR][nC] = true
+								queue = append(queue, [2]int{nR, nC})
+								groupCoords = append(groupCoords, [2]int{nR, nC})
+							}
+						} else {
+							// Found a non-NaN neighbor, add its value
+							neighborValues = append(neighborValues, filledData[nR][nC].Value())
+						}
+					}
+				}
+
+				// After exploring the group, check if it's surrounded and has neighbors
+				if isSurrounded && len(neighborValues) > 0 {
+					sum := float32(0.0)
+					for _, val := range neighborValues {
+						sum += val
+					}
+					average := sum / float32(len(neighborValues))
+
+					for _, coord := range groupCoords {
+						filledData[coord[0]][coord[1]].SetValue(average)
+					}
+				}
+			}
+		}
+	}
+
+	return filledData
+}
