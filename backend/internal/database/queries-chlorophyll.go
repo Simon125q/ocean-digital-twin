@@ -221,7 +221,7 @@ func (s *service) GetChlorophyllDataAtLocation(ctx context.Context, point orb.Po
 
 func (s *service) UpdateChlorophyllData(ctx context.Context, data []models.ChlorophyllData) error {
 	query := `
-        UPDATE
+        UPDATE chlorophyll_data
         SET chlor_a = $1
         WHERE id = $2
     `
