@@ -63,6 +63,7 @@ func (s *service) GetChlorophyllData(ctx context.Context, startTime, endTime tim
 	if !rawData {
 		query = `
             SELECT 
+                id,
                 measurement_time,
                 ST_Y(location::geometry) as latitude,
                 ST_X(location::geometry) as longitude,
@@ -84,6 +85,7 @@ func (s *service) GetChlorophyllData(ctx context.Context, startTime, endTime tim
 	} else {
 		query = `
             SELECT 
+                id,
                 measurement_time,
                 ST_Y(location::geometry) as latitude,
                 ST_X(location::geometry) as longitude,
@@ -112,7 +114,7 @@ func (s *service) GetChlorophyllData(ctx context.Context, startTime, endTime tim
 	var result []models.ChlorophyllData
 	for rows.Next() {
 		var d models.ChlorophyllData
-		err := rows.Scan(&d.MeasurementTime, &d.Latitude, &d.Longitude, &d.ChlorophyllA, &d.CreatedAt)
+		err := rows.Scan(&d.ID, &d.MeasurementTime, &d.Latitude, &d.Longitude, &d.ChlorophyllA, &d.CreatedAt)
 		if err != nil {
 			return nil, fmt.Errorf("error scanning chlor data: %w", err)
 		}
