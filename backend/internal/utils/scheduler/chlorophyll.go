@@ -45,5 +45,9 @@ func (u *Updater) updateChlorophyllData(ctx context.Context) {
 		u.logger.Error("Failed to save chlorophyll data", "err", err)
 		return
 	}
+	if err := u.db.SaveChlorophyllDataRaw(ctx, data); err != nil {
+		u.logger.Error("Failed to save chlorophyll data", "err", err)
+		return
+	}
 	u.logger.Info("Chlorophyll data update completed", "updated_points", len(data))
 }
