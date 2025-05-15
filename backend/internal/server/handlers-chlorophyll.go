@@ -17,9 +17,11 @@ func (s *Server) GetChlorophyllDataHandler(w http.ResponseWriter, r *http.Reques
 	minLonStr := r.URL.Query().Get("min_lon")
 	maxLatStr := r.URL.Query().Get("max_lat")
 	maxLonStr := r.URL.Query().Get("max_lon")
+	rawDataStr := r.URL.Query().Get("raw_data")
 
 	endTime := time.Now().UTC()
 	startTime := endTime.Add(-14 * 24 * time.Hour)
+	rawData := false
 
 	if startTimeStr != "" {
 		parsedTime, err := time.Parse(time.RFC3339, startTimeStr)
@@ -63,7 +65,16 @@ func (s *Server) GetChlorophyllDataHandler(w http.ResponseWriter, r *http.Reques
 		}
 	}
 
-	data, err := s.db.GetChlorophyllData(r.Context(), startTime, endTime, minLat, minLon, maxLat, maxLon)
+	if rawDataStr != "" {
+		val, err := strconv.ParseBool(rawDataStr)
+		if err != nil {
+			http.Error(w, "Error parsing raw data parameter: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		rawData = val
+	}
+
+	data, err := s.db.GetChlorophyllData(r.Context(), startTime, endTime, minLat, minLon, maxLat, maxLon, rawData)
 	if err != nil {
 		http.Error(w, "Error retrieving chlorophyll data: "+err.Error(), http.StatusInternalServerError)
 		return

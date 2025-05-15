@@ -58,70 +58,51 @@ func (s *service) SaveChlorophyllDataRaw(ctx context.Context, data []models.Chlo
 	return nil
 }
 
-func (s *service) GetChlorophyllData(ctx context.Context, startTime, endTime time.Time, minLat, minLon, maxLat, maxLon float64) ([]models.ChlorophyllData, error) {
-	query := `
-        SELECT 
-            measurement_time,
-            ST_Y(location::geometry) as latitude,
-            ST_X(location::geometry) as longitude,
-            chlor_a,
-            created_at
-        FROM
-            chlorophyll_data
-        WHERE
-            measurement_time BETWEEN $1 AND $2
-            AND ST_Intersects(
-                location::geometry,
-                ST_MakeEnvelope(
-                    $3, $4, $5, $6, 4326
+func (s *service) GetChlorophyllData(ctx context.Context, startTime, endTime time.Time, minLat, minLon, maxLat, maxLon float64, rawData bool) ([]models.ChlorophyllData, error) {
+	var query string
+	if !rawData {
+		query = `
+            SELECT 
+                measurement_time,
+                ST_Y(location::geometry) as latitude,
+                ST_X(location::geometry) as longitude,
+                chlor_a,
+                created_at
+            FROM
+                chlorophyll_data
+            WHERE
+                measurement_time BETWEEN $1 AND $2
+                AND ST_Intersects(
+                    location::geometry,
+                    ST_MakeEnvelope(
+                        $3, $4, $5, $6, 4326
+                    )
                 )
-            )
-        ORDER BY
-            measurement_time
-        `
-	rows, err := s.db.QueryContext(ctx, query, startTime, endTime, minLon, minLat, maxLon, maxLat)
-	if err != nil {
-		return nil, fmt.Errorf("error quering for chlor data: %w", err)
-	}
-	defer rows.Close()
-
-	var result []models.ChlorophyllData
-	for rows.Next() {
-		var d models.ChlorophyllData
-		err := rows.Scan(&d.MeasurementTime, &d.Latitude, &d.Longitude, &d.ChlorophyllA, &d.CreatedAt)
-		if err != nil {
-			return nil, fmt.Errorf("error scanning chlor data: %w", err)
-		}
-		result = append(result, d)
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("error iterating through chlor rows: %w", err)
-	}
-	return result, nil
-}
-
-func (s *service) GetChlorophyllDataRaw(ctx context.Context, startTime, endTime time.Time, minLat, minLon, maxLat, maxLon float64) ([]models.ChlorophyllData, error) {
-	query := `
-        SELECT 
-            measurement_time,
-            ST_Y(location::geometry) as latitude,
-            ST_X(location::geometry) as longitude,
-            chlor_a,
-            created_at
-        FROM
-            chlorophyll_data_raw
-        WHERE
-            measurement_time BETWEEN $1 AND $2
-            AND ST_Intersects(
-                location::geometry,
-                ST_MakeEnvelope(
-                    $3, $4, $5, $6, 4326
+            ORDER BY
+                measurement_time
+            `
+	} else {
+		query = `
+            SELECT 
+                measurement_time,
+                ST_Y(location::geometry) as latitude,
+                ST_X(location::geometry) as longitude,
+                chlor_a,
+                created_at
+            FROM
+                chlorophyll_data_raw
+            WHERE
+                measurement_time BETWEEN $1 AND $2
+                AND ST_Intersects(
+                    location::geometry,
+                    ST_MakeEnvelope(
+                        $3, $4, $5, $6, 4326
+                    )
                 )
-            )
-        ORDER BY
-            measurement_time
-        `
+            ORDER BY
+                measurement_time
+            `
+	}
 	rows, err := s.db.QueryContext(ctx, query, startTime, endTime, minLon, minLat, maxLon, maxLat)
 	if err != nil {
 		return nil, fmt.Errorf("error quering for chlor data: %w", err)

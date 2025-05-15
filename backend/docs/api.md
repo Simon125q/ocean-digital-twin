@@ -28,14 +28,15 @@ Provides chlorophyll data in GeoJSON format.
 
 #### Query Parameters
 
-| Parameter    | Description                                           |
-| ------------ | ----------------------------------------------------- |
-| `start_time` | Filter for records with measurement time ≥ this value |
-| `end_time`   | Filter for records with measurement time ≤ this value |
-| `min_lat`    | Filter for records with latitude ≥ this value         |
-| `min_lon`    | Filter for records with longitude ≥ this value        |
-| `max_lat`    | Filter for records with latitude ≤ this value         |
-| `max_lon`    | Filter for records with longitude ≤ this value        |
+| Parameter    | Description                                                 |
+| ------------ | ----------------------------------------------------------- |
+| `start_time` | Filter for records with measurement time ≥ this value       |
+| `end_time`   | Filter for records with measurement time ≤ this value       |
+| `min_lat`    | Filter for records with latitude ≥ this value               |
+| `min_lon`    | Filter for records with longitude ≥ this value              |
+| `max_lat`    | Filter for records with latitude ≤ this value               |
+| `max_lon`    | Filter for records with longitude ≤ this value              |
+| `raw_data`   | Filter for raw chlorophyll data without interpolated values |
 
 ## Examples
 

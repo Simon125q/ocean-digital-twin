@@ -22,8 +22,7 @@ type Service interface {
 	// Operations
 	SaveChlorophyllData(ctx context.Context, data []models.ChlorophyllData) error
 	SaveChlorophyllDataRaw(ctx context.Context, data []models.ChlorophyllData) error
-	GetChlorophyllData(ctx context.Context, startTime, endTime time.Time, minLat, minLon, maxLat, maxLon float64) ([]models.ChlorophyllData, error)
-	GetChlorophyllDataRaw(ctx context.Context, startTime, endTime time.Time, minLat, minLon, maxLat, maxLon float64) ([]models.ChlorophyllData, error)
+	GetChlorophyllData(ctx context.Context, startTime, endTime time.Time, minLat, minLon, maxLat, maxLon float64, rawData bool) ([]models.ChlorophyllData, error)
 	GetLatestChlorophyllTimestamp(ctx context.Context) (time.Time, error)
 	GetAllChlorophyllLocations(ctx context.Context) ([]orb.Point, error)
 	GetChlorophyllDataAtLocation(ctx context.Context, point orb.Point) ([]models.ChlorophyllData, error)
