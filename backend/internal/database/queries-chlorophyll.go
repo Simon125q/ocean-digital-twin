@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"ocean-digital-twin/internal/database/models"
+	"sort"
 	"time"
 
 	"github.com/paulmach/orb"
@@ -172,6 +173,33 @@ func (s *service) GetAllChlorophyllLocations(ctx context.Context) ([]orb.Point, 
 	return locations, nil
 }
 
+func (s *service) GetAllChlorophyllTimestamps(ctx context.Context) ([]time.Time, error) {
+	query := `
+        SELECT DISTINCT measurement_time
+        FROM chlorophyll_data
+        ORDER BY measurement_time
+    `
+	rows, err := s.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("error finding timestamps: %w", err)
+	}
+	defer rows.Close()
+
+	var timestamps []time.Time
+	for rows.Next() {
+		var ts time.Time
+		if err := rows.Scan(&ts); err != nil {
+			return nil, fmt.Errorf("failed to scan timestamp: %w", err)
+		}
+		timestamps = append(timestamps, ts)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows iteration error: %w", err)
+	}
+	return timestamps, nil
+}
+
 func (s *service) GetChlorophyllDataAtLocation(ctx context.Context, point orb.Point) ([]models.ChlorophyllData, error) {
 	query := `
         SELECT 
@@ -217,6 +245,109 @@ func (s *service) GetChlorophyllDataAtLocation(ctx context.Context, point orb.Po
 	}
 
 	return results, nil
+}
+
+func (s *service) GetChlorophyllDataAtTimestamp(ctx context.Context, timestamp time.Time) ([][]models.ChlorophyllData, error) {
+	query := `
+        SELECT
+            id,
+            measurement_time,
+            ST_Y(location::geometry) as latitude,
+            ST_X(location::geometry) as longitude,
+            chlor_a,
+            created_at
+        FROM
+            chlorophyll_data
+        WHERE
+            measurement_time = $1
+        ORDER BY
+            latitude DESC, longitude ASC -- Order by latitude (descending) and longitude (ascending)
+    `
+	// We're now filtering by the provided timestamp
+	resultRows, err := s.db.QueryContext(ctx, query, timestamp)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving chlorophyll data at timestamp %s: %w",
+			timestamp.Format(time.RFC3339), err)
+	}
+	defer resultRows.Close()
+
+	var dataList []models.ChlorophyllData
+	for resultRows.Next() {
+		var data models.ChlorophyllData
+
+		// Scan the data from the row
+		if err := resultRows.Scan(&data.ID, &data.MeasurementTime, &data.Latitude, &data.Longitude, &data.ChlorophyllA, &data.CreatedAt); err != nil {
+			return nil, fmt.Errorf("error scanning chlorophyll data: %w", err)
+		}
+
+		dataList = append(dataList, data)
+	}
+
+	if err = resultRows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating rows: %w", err)
+	}
+
+	// organize the flat list of data into a 2D grid based on latitude and longitude.
+	// this assumes the data points form a somewhat regular grid.
+
+	// 1. Get unique latitudes and longitudes and their sorted order
+	uniqueLatitudesMap := make(map[float64]struct{})
+	uniqueLongitudesMap := make(map[float64]struct{})
+	for _, data := range dataList {
+		uniqueLatitudesMap[data.Latitude] = struct{}{}
+		uniqueLongitudesMap[data.Longitude] = struct{}{}
+	}
+
+	var uniqueLatitudes []float64
+	for lat := range uniqueLatitudesMap {
+		uniqueLatitudes = append(uniqueLatitudes, lat)
+	}
+	// Sort latitudes in descending order
+	// This assumes higher latitudes are "further north" in grid
+	sort.Slice(uniqueLatitudes, func(i, j int) bool {
+		return uniqueLatitudes[i] > uniqueLatitudes[j]
+	})
+
+	var uniqueLongitudes []float64
+	for lon := range uniqueLongitudesMap {
+		uniqueLongitudes = append(uniqueLongitudes, lon)
+	}
+	// Sort longitudes in ascending order
+	sort.Float64s(uniqueLongitudes)
+
+	// Create a map to quickly find the index of a latitude or longitude
+	latIndexMap := make(map[float64]int)
+	for i, lat := range uniqueLatitudes {
+		latIndexMap[lat] = i
+	}
+
+	lonIndexMap := make(map[float64]int)
+	for i, lon := range uniqueLongitudes {
+		lonIndexMap[lon] = i
+	}
+
+	// Initialize the 2D grid
+	rows := len(uniqueLatitudes)
+	cols := len(uniqueLongitudes)
+	chlorophyllGrid := make([][]models.ChlorophyllData, rows)
+	for i := range chlorophyllGrid {
+		chlorophyllGrid[i] = make([]models.ChlorophyllData, cols)
+	}
+
+	// Populate the grid
+	for _, data := range dataList {
+		latIndex, latOk := latIndexMap[data.Latitude]
+		lonIndex, lonOk := lonIndexMap[data.Longitude]
+
+		if latOk && lonOk {
+			// Place the data at the calculated position in the grid
+			chlorophyllGrid[latIndex][lonIndex] = data
+		} else {
+			fmt.Printf("Warning: Data point with unexpected lat/lon found: (%f, %f)\n", data.Latitude, data.Longitude)
+		}
+	}
+
+	return chlorophyllGrid, nil
 }
 
 func (s *service) UpdateChlorophyllData(ctx context.Context, data []models.ChlorophyllData) error {

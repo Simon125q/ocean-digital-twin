@@ -1,7 +1,6 @@
 package interpolator
 
 import (
-	"context"
 	"log/slog"
 	"math"
 	"ocean-digital-twin/internal/database"
@@ -22,31 +21,6 @@ func NewInterpolator(db database.Service, logger *slog.Logger) *Interpolator {
 		db:     db,
 		logger: logger,
 	}
-}
-
-func (i *Interpolator) RunChlorophyllInterpolation(ctx context.Context) error {
-	i.logger.Info("Starting interpolation of data")
-
-	points, err := i.db.GetAllChlorophyllLocations(ctx)
-	if err != nil {
-		i.logger.Error("error geting chlor locations", "err", err)
-		return err
-	}
-	i.logger.Info("Success getting location points", "count", len(points))
-	for _, p := range points {
-		chlorData, err := i.db.GetChlorophyllDataAtLocation(ctx, p)
-		if err != nil {
-			i.logger.Error("error geting chlor data at location", "loc", p, "err", err)
-		}
-		interpolableDataSlice := make([]InterpolatableData, len(chlorData))
-		for i := range chlorData {
-			interpolableDataSlice[i] = &chlorData[i]
-		}
-		i.interpolateLinearyDataRow(interpolableDataSlice)
-		i.db.UpdateChlorophyllData(ctx, chlorData)
-	}
-	i.logger.Info("Interpolation of data completed")
-	return nil
 }
 
 func (ip *Interpolator) interpolateLinearyDataRow(data []InterpolatableData) {
@@ -96,12 +70,6 @@ func (ip *Interpolator) interpolateDataArea(data [][]InterpolatableData) [][]Int
 	rows := len(data)
 	cols := len(data[0])
 
-	filledData := make([][]InterpolatableData, rows)
-	for i := range filledData {
-		filledData[i] = make([]InterpolatableData, cols)
-		copy(filledData[i], data[i])
-	}
-
 	visited := make([][]bool, rows)
 	for i := range visited {
 		visited[i] = make([]bool, cols)
@@ -113,7 +81,7 @@ func (ip *Interpolator) interpolateDataArea(data [][]InterpolatableData) [][]Int
 
 	for r := 0; r < rows; r++ {
 		for c := 0; c < cols; c++ {
-			if math.IsNaN(float64(filledData[r][c].Value())) && !visited[r][c] {
+			if math.IsNaN(float64(data[r][c].Value())) && !visited[r][c] {
 				// Found an unvisited NaN, start exploring the group
 				groupCoords := make([][2]int, 0)
 				neighborValues := make([]float32, 0)
@@ -138,7 +106,7 @@ func (ip *Interpolator) interpolateDataArea(data [][]InterpolatableData) [][]Int
 							continue
 						}
 
-						if math.IsNaN(float64(filledData[nR][nC].Value())) {
+						if math.IsNaN(float64(data[nR][nC].Value())) {
 							if !visited[nR][nC] {
 								visited[nR][nC] = true
 								queue = append(queue, [2]int{nR, nC})
@@ -146,7 +114,7 @@ func (ip *Interpolator) interpolateDataArea(data [][]InterpolatableData) [][]Int
 							}
 						} else {
 							// Found a non-NaN neighbor, add its value
-							neighborValues = append(neighborValues, filledData[nR][nC].Value())
+							neighborValues = append(neighborValues, data[nR][nC].Value())
 						}
 					}
 				}
@@ -160,12 +128,12 @@ func (ip *Interpolator) interpolateDataArea(data [][]InterpolatableData) [][]Int
 					average := sum / float32(len(neighborValues))
 
 					for _, coord := range groupCoords {
-						filledData[coord[0]][coord[1]].SetValue(average)
+						data[coord[0]][coord[1]].SetValue(average)
 					}
 				}
 			}
 		}
 	}
 
-	return filledData
+	return data
 }
