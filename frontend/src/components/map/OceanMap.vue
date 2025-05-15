@@ -184,7 +184,7 @@ onMounted(() => {
     mapInstance = new MapboxMap({
       container: mapContainer.value, // container ID or HTML element
       style: 'mapbox://styles/mapbox/streets-v12', // style URL
-      center: [1.6, 41.16], // starting position [lng, lat]
+      center: [1.72, 41.00], // starting position [lng, lat]
       zoom: 10, // starting zoom
     });
 

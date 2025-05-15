@@ -16,10 +16,10 @@ import (
 )
 
 const (
-	minLat         = 40.83
+	minLat         = 40.50
 	minLon         = 1.10
-	maxLat         = 41.26
-	maxLon         = 2.53
+	maxLat         = 41.46
+	maxLon         = 2.83
 	updateInterval = 24 * time.Hour
 )
 

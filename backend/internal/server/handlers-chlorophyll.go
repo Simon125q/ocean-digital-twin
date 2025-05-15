@@ -39,10 +39,10 @@ func (s *Server) GetChlorophyllDataHandler(w http.ResponseWriter, r *http.Reques
 			slog.Error("Error parsing time", "time", endTimeStr, "err", err)
 		}
 	}
-	minLat := 40.83
+	minLat := 40.50
 	minLon := 1.10
-	maxLat := 41.26
-	maxLon := 2.53
+	maxLat := 41.46
+	maxLon := 2.83
 
 	if minLatStr != "" {
 		if val, err := strconv.ParseFloat(minLatStr, 64); err == nil {
