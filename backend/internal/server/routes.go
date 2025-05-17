@@ -33,6 +33,9 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.Route("/chlorophyll", func(r chi.Router) {
 		r.Get("/", s.GetChlorophyllDataHandler)
 	})
+	r.Route("/currents", func(r chi.Router) {
+		r.Get("/", s.GetCurrentsDataHandler)
+	})
 
 	r.Get("/health", s.healthHandler)
 

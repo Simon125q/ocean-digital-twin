@@ -55,6 +55,77 @@ func (s *service) SaveCurrentsDataRaw(ctx context.Context, data []models.Current
 	return nil
 }
 
+func (s *service) GetCurrentsData(ctx context.Context, startTime, endTime time.Time, minLat, minLon, maxLat, maxLon float64, rawData bool) ([]models.CurrentsData, error) {
+	var query string
+	if !rawData {
+		query = `
+            SELECT 
+                id,
+                measurement_time,
+                ST_Y(location::geometry) as latitude,
+                ST_X(location::geometry) as longitude,
+                u_current,
+                v_current,
+                created_at
+            FROM
+                currents_data
+            WHERE
+                measurement_time BETWEEN $1 AND $2
+                AND ST_Intersects(
+                    location::geometry,
+                    ST_MakeEnvelope(
+                        $3, $4, $5, $6, 4326
+                    )
+                )
+            ORDER BY
+                measurement_time
+            `
+	} else {
+		query = `
+            SELECT 
+                id,
+                measurement_time,
+                ST_Y(location::geometry) as latitude,
+                ST_X(location::geometry) as longitude,
+                u_current,
+                v_current,
+                created_at
+            FROM
+                currents_data_raw
+            WHERE
+                measurement_time BETWEEN $1 AND $2
+                AND ST_Intersects(
+                    location::geometry,
+                    ST_MakeEnvelope(
+                        $3, $4, $5, $6, 4326
+                    )
+                )
+            ORDER BY
+                measurement_time
+            `
+	}
+	rows, err := s.db.QueryContext(ctx, query, startTime, endTime, minLon, minLat, maxLon, maxLat)
+	if err != nil {
+		return nil, fmt.Errorf("error quering for currents data: %w", err)
+	}
+	defer rows.Close()
+
+	var result []models.CurrentsData
+	for rows.Next() {
+		var d models.CurrentsData
+		err := rows.Scan(&d.ID, &d.MeasurementTime, &d.Latitude, &d.Longitude, &d.UCurrent, &d.VCurrent, &d.CreatedAt)
+		if err != nil {
+			return nil, fmt.Errorf("error scanning currents data: %w", err)
+		}
+		result = append(result, d)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating through currents rows: %w", err)
+	}
+	return result, nil
+}
+
 func (s *service) GetLatestCurrentsTimestamp(ctx context.Context) (time.Time, error) {
 	query := `
         SELECT
