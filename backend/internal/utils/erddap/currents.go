@@ -27,7 +27,7 @@ func (d *Downloader) DownloadCurrentsData(ctx context.Context, startTime, endTim
 	url := d.buildURLWithVars(startTime, endTime, CurrentsDatasetID, vars)
 	d.logger.Info("Downloading currents data", "url", url)
 
-	tempFile := filepath.Join(tempDir, fmt.Sprintf("chlor_%s_%s.nc",
+	tempFile := filepath.Join(tempDir, fmt.Sprintf("currents_%s_%s.nc",
 		startTime.Format("20060102"), endTime.Format("20060102")))
 
 	if err := d.downloadFile(ctx, url, tempFile); err != nil {

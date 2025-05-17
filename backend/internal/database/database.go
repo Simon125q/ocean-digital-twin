@@ -29,6 +29,9 @@ type Service interface {
 	GetChlorophyllDataAtTimestamp(ctx context.Context, timestamp time.Time) ([][]models.ChlorophyllData, error)
 	GetAllChlorophyllTimestamps(ctx context.Context) ([]time.Time, error)
 	UpdateChlorophyllData(ctx context.Context, data []models.ChlorophyllData) error
+	SaveCurrentsData(ctx context.Context, data []models.CurrentsData) error
+	SaveCurrentsDataRaw(ctx context.Context, data []models.CurrentsData) error
+	GetLatestCurrentsTimestamp(ctx context.Context) (time.Time, error)
 
 	GetCount() int
 	UpdateCount(int) error
