@@ -7,11 +7,13 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 )
 
 const (
 	ChlorDatasetID     = "noaacwNPPVIIRSchlaDaily"
+	CurrentsDatasetID  = "noaacwBLENDEDNRTcurrentsDaily"
 	erddapBaseURL      = "https://coastwatch.noaa.gov/erddap/griddap/"
 	erddapInfoBaseURL  = "https://coastwatch.noaa.gov/erddap/info/"
 	fileType           = "nc"
@@ -48,6 +50,19 @@ func (d *Downloader) buildURL(startTime, endTime time.Time, datasetID string) st
 	query := fmt.Sprintf("chlor_a[(%s):1:(%s)][(0.0):1:(0.0)][(%.5f):1:(%.5f)][(%.5f):1:(%.5f)]",
 		startStr, endStr, d.minLat, d.maxLat, d.minLon, d.maxLon)
 
+	return fmt.Sprintf("%s/%s.%s?%s", erddapBaseURL, datasetID, fileType, query)
+}
+
+func (d *Downloader) buildURLWithVars(startTime, endTime time.Time, datasetID string, vars []string) string {
+	startStr := startTime.Format("2006-01-02T15:04:05Z")
+	endStr := endTime.Format("2006-01-02T15:04:05Z")
+	query := ""
+
+	for _, v := range vars {
+		query += fmt.Sprintf("%s[(%s):1:(%s)][(%.5f):1:(%.5f)][(%.5f):1:(%.5f)],",
+			v, startStr, endStr, d.minLat, d.maxLat, d.minLon, d.maxLon)
+	}
+	query = strings.Trim(query, ",")
 	return fmt.Sprintf("%s/%s.%s?%s", erddapBaseURL, datasetID, fileType, query)
 }
 
