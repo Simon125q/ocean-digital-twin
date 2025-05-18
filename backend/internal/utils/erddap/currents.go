@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"math"
 	"ocean-digital-twin/internal/database/models"
 	"os"
 	"path/filepath"
@@ -11,6 +12,8 @@ import (
 
 	"github.com/batchatco/go-native-netcdf/netcdf"
 )
+
+const netCDFFillValue64 float64 = -214748.3648
 
 func (d *Downloader) DownloadCurrentsData(ctx context.Context, startTime, endTime time.Time) ([]models.CurrentsData, error) {
 	if err := os.MkdirAll(tempDir, 0755); err != nil {
@@ -104,18 +107,34 @@ func (d *Downloader) processCurrentsFile(filePath string) ([]models.CurrentsData
 		timePoints = append(timePoints, time.Unix(int64(t), 0).UTC())
 	}
 
+	var uCurrentResultF32 float32
+	var vCurrentResultF32 float32
+
 	var result []models.CurrentsData
 	for timeIdx, t := range timePoints {
 		for latIdx, lat := range lats {
 			for lonIdx, lon := range lons {
-				uCurrentValue := uCurrentData[timeIdx][latIdx][lonIdx]
-				vCurrentValue := vCurrentData[timeIdx][latIdx][lonIdx]
+				uCurrentValue64 := uCurrentData[timeIdx][latIdx][lonIdx]
+				vCurrentValue64 := vCurrentData[timeIdx][latIdx][lonIdx]
+
+				if uCurrentValue64 == netCDFFillValue64 {
+					uCurrentResultF32 = float32(math.NaN())
+				} else {
+					uCurrentResultF32 = float32(uCurrentValue64)
+				}
+
+				if vCurrentValue64 == netCDFFillValue64 {
+					vCurrentResultF32 = float32(math.NaN())
+				} else {
+					vCurrentResultF32 = float32(vCurrentValue64)
+				}
+
 				result = append(result, models.CurrentsData{
 					MeasurementTime: t,
 					Latitude:        float64(lat),
 					Longitude:       float64(lon),
-					UCurrent:        float32(uCurrentValue),
-					VCurrent:        float32(vCurrentValue),
+					UCurrent:        uCurrentResultF32,
+					VCurrent:        vCurrentResultF32,
 				})
 			}
 		}
