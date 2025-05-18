@@ -39,6 +39,9 @@ type Service interface {
 	GetVCurrentsDataAtLocation(ctx context.Context, point orb.Point) ([]models.VCurrentsData, error)
 	UpdateUCurrentsData(ctx context.Context, data []models.UCurrentsData) error
 	UpdateVCurrentsData(ctx context.Context, data []models.VCurrentsData) error
+	GetAllCurrentsTimestamps(ctx context.Context) ([]time.Time, error)
+	GetVCurrentDataAtTimestamp(ctx context.Context, timestamp time.Time) ([][]models.VCurrentsData, error)
+	GetUCurrentDataAtTimestamp(ctx context.Context, timestamp time.Time) ([][]models.UCurrentsData, error)
 
 	GetCount() int
 	UpdateCount(int) error

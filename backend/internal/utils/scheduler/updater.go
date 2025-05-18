@@ -62,5 +62,6 @@ func (u *Updater) update(ctx context.Context) {
 	// u.interpolator.RunLinearChlorophyllInterpolationBasedOnTime(ctx)
 
 	u.updateCurrentsData(ctx)
+	u.interpolator.RunCurrentsInterpolationBasedOnArea(ctx)
 	u.interpolator.RunLinearCurrentsInterpolationBasedOnTime(ctx)
 }

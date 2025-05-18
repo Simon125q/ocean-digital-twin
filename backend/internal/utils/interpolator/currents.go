@@ -20,13 +20,7 @@ func (i *Interpolator) RunLinearCurrentsInterpolationBasedOnTime(ctx context.Con
 		for i := range uCurrentsData {
 			interpolableUCurrentsDataSlice[i] = &uCurrentsData[i]
 		}
-		for _, c := range uCurrentsData {
-			i.logger.Info("Before", "u_currents", c.UCurrent)
-		}
 		i.interpolateLinearyDataRow(interpolableUCurrentsDataSlice)
-		for _, c := range uCurrentsData {
-			i.logger.Info("After", "u_currents", c.UCurrent)
-		}
 		i.db.UpdateUCurrentsData(ctx, uCurrentsData)
 
 		vCurrentsData, err := i.db.GetVCurrentsDataAtLocation(ctx, p)
@@ -37,13 +31,7 @@ func (i *Interpolator) RunLinearCurrentsInterpolationBasedOnTime(ctx context.Con
 		for i := range vCurrentsData {
 			interpolableVCurrentsDataSlice[i] = &vCurrentsData[i]
 		}
-		for _, c := range vCurrentsData {
-			i.logger.Info("Before", "v_currents", c.VCurrent)
-		}
 		i.interpolateLinearyDataRow(interpolableVCurrentsDataSlice)
-		for _, c := range vCurrentsData {
-			i.logger.Info("After", "v_currents", c.VCurrent)
-		}
 		i.db.UpdateVCurrentsData(ctx, vCurrentsData)
 	}
 	i.logger.Info("Interpolation of data based on time completed")
@@ -54,31 +42,51 @@ func (i *Interpolator) RunCurrentsInterpolationBasedOnArea(ctx context.Context) 
 	//TODO:
 	i.logger.Info("Starting interpolation of data area")
 
-	timestamps, err := i.db.GetAllChlorophyllTimestamps(ctx)
+	timestamps, err := i.db.GetAllCurrentsTimestamps(ctx)
 	if err != nil {
-		i.logger.Error("error geting chlor timestamps", "err", err)
+		i.logger.Error("error geting currents timestamps", "err", err)
 		return err
 	}
 	i.logger.Info("Success getting timestamps", "count", len(timestamps))
 	for _, t := range timestamps {
-		chlorData, err := i.db.GetChlorophyllDataAtTimestamp(ctx, t)
+		vCurrentsData, err := i.db.GetVCurrentDataAtTimestamp(ctx, t)
 		if err != nil {
-			i.logger.Error("error geting chlor data at timestamp", "time", t, "err", err)
+			i.logger.Error("error geting v_current data at timestamp", "time", t, "err", err)
 		}
 
-		interpolableDataSlice := make([][]InterpolatableData, len(chlorData))
-		for i := range chlorData {
-			interpolableDataSlice[i] = make([]InterpolatableData, len(chlorData[i]))
+		interpolableVCurrentDataSlice := make([][]InterpolatableData, len(vCurrentsData))
+		for i := range vCurrentsData {
+			interpolableVCurrentDataSlice[i] = make([]InterpolatableData, len(vCurrentsData[i]))
 		}
 
-		for row := range chlorData {
-			for col := range chlorData[row] {
-				interpolableDataSlice[row][col] = &chlorData[row][col]
+		for row := range vCurrentsData {
+			for col := range vCurrentsData[row] {
+				interpolableVCurrentDataSlice[row][col] = &vCurrentsData[row][col]
 			}
 		}
-		i.interpolateDataArea(interpolableDataSlice)
-		for row := range chlorData {
-			i.db.UpdateChlorophyllData(ctx, chlorData[row])
+		i.interpolateDataArea(interpolableVCurrentDataSlice)
+		for row := range vCurrentsData {
+			i.db.UpdateVCurrentsData(ctx, vCurrentsData[row])
+		}
+
+		uCurrentsData, err := i.db.GetUCurrentDataAtTimestamp(ctx, t)
+		if err != nil {
+			i.logger.Error("error geting u_current data at timestamp", "time", t, "err", err)
+		}
+
+		interpolableUCurrentDataSlice := make([][]InterpolatableData, len(uCurrentsData))
+		for i := range uCurrentsData {
+			interpolableUCurrentDataSlice[i] = make([]InterpolatableData, len(uCurrentsData[i]))
+		}
+
+		for row := range uCurrentsData {
+			for col := range uCurrentsData[row] {
+				interpolableUCurrentDataSlice[row][col] = &uCurrentsData[row][col]
+			}
+		}
+		i.interpolateDataArea(interpolableUCurrentDataSlice)
+		for row := range uCurrentsData {
+			i.db.UpdateUCurrentsData(ctx, uCurrentsData[row])
 		}
 	}
 	i.logger.Info("Interpolation of data based on area completed")
