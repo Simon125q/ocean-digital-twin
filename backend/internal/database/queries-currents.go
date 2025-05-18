@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"ocean-digital-twin/internal/database/models"
 	"time"
+
+	"github.com/paulmach/orb"
+	"github.com/paulmach/orb/encoding/wkb"
 )
 
 func (s *service) SaveCurrentsData(ctx context.Context, data []models.CurrentsData) error {
@@ -139,4 +142,143 @@ func (s *service) GetLatestCurrentsTimestamp(ctx context.Context) (time.Time, er
 		return time.Time{}, fmt.Errorf("error scanning row: %w", err)
 	}
 	return result, nil
+}
+
+func (s *service) GetAllCurrentsLocations(ctx context.Context) ([]orb.Point, error) {
+	query := `
+        SELECT DISTINCT ST_AsBinary(location) as geom
+        FROM currents_data
+    `
+	rows, err := s.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("error finding locations: %w", err)
+	}
+	defer rows.Close()
+
+	var locations []orb.Point
+	for rows.Next() {
+		var geomBytes []byte
+		if err := rows.Scan(&geomBytes); err != nil {
+			return nil, fmt.Errorf("error scanning location with gap: %w", err)
+		}
+		geom, err := wkb.Unmarshal(geomBytes)
+		if err != nil {
+			return nil, fmt.Errorf("error unmarshalling location point: %w", err)
+		}
+		point, ok := geom.(orb.Point)
+		if !ok {
+			return nil, fmt.Errorf("expected geometry point, got %T", geom)
+		}
+		locations = append(locations, point)
+	}
+	return locations, nil
+}
+
+func (s *service) GetUCurrentsDataAtLocation(ctx context.Context, point orb.Point) ([]models.UCurrentsData, error) {
+	query := `
+        SELECT 
+            id,
+            measurement_time,
+            ST_Y(location::geometry) as latitude,
+            ST_X(location::geometry) as longitude,
+            u_current,
+            created_at
+        FROM
+            currents_data
+        WHERE
+            ST_Equals(
+                location::geometry,
+                ST_SetSRID(
+                    ST_MakePoint($1, $2),
+                    4326
+                )
+            )
+        ORDER BY
+            measurement_time
+    `
+	rows, err := s.db.QueryContext(ctx, query, point[0], point[1])
+	if err != nil {
+		return nil, fmt.Errorf("error finding u_currents data at point (%f, %f): %w",
+			point[0], point[1], err)
+	}
+	defer rows.Close()
+
+	var results []models.UCurrentsData
+	for rows.Next() {
+		var data models.UCurrentsData
+
+		if err := rows.Scan(&data.ID, &data.MeasurementTime, &data.Latitude, &data.Longitude, &data.UCurrent, &data.CreatedAt); err != nil {
+			return nil, fmt.Errorf("error scanning u_currents data: %w", err)
+		}
+
+		results = append(results, data)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating rows: %w", err)
+	}
+
+	return results, nil
+}
+
+func (s *service) GetVCurrentsDataAtLocation(ctx context.Context, point orb.Point) ([]models.VCurrentsData, error) {
+	query := `
+        SELECT 
+            id,
+            measurement_time,
+            ST_Y(location::geometry) as latitude,
+            ST_X(location::geometry) as longitude,
+            v_current,
+            created_at
+        FROM
+            currents_data
+        WHERE
+            ST_Equals(
+                location::geometry,
+                ST_SetSRID(
+                    ST_MakePoint($1, $2),
+                    4326
+                )
+            )
+        ORDER BY
+            measurement_time
+    `
+	rows, err := s.db.QueryContext(ctx, query, point[0], point[1])
+	if err != nil {
+		return nil, fmt.Errorf("error finding v_currents data at point (%f, %f): %w",
+			point[0], point[1], err)
+	}
+	defer rows.Close()
+
+	var results []models.VCurrentsData
+	for rows.Next() {
+		var data models.VCurrentsData
+
+		if err := rows.Scan(&data.ID, &data.MeasurementTime, &data.Latitude, &data.Longitude, &data.VCurrent, &data.CreatedAt); err != nil {
+			return nil, fmt.Errorf("error scanning v_currents data: %w", err)
+		}
+
+		results = append(results, data)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating rows: %w", err)
+	}
+
+	return results, nil
+}
+
+func (s *service) UpdateUCurrentsData(ctx context.Context, data []models.UCurrentsData) error {
+	query := `
+        UPDATE currents_data
+        SET u_current = $1
+        WHERE id = $2
+    `
+	for _, d := range data {
+		_, err := s.db.ExecContext(ctx, query, d.UCurrent, d.ID)
+		if err != nil {
+			return fmt.Errorf("error updating chlor_a: %w", err)
+		}
+	}
+	return nil
 }

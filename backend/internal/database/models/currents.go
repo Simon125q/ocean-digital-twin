@@ -18,12 +18,38 @@ type CurrentsData struct {
 	CreatedAt       time.Time `json:"created_at"`
 }
 
-func (c *CurrentsData) Value() float32 {
+type VCurrentsData struct {
+	ID              int       `json:"id"`
+	MeasurementTime time.Time `json:"measurement_time"`
+	Latitude        float64   `json:"latitude"`
+	Longitude       float64   `json:"longitude"`
+	VCurrent        float32   `json:"v_current"`
+	CreatedAt       time.Time `json:"created_at"`
+}
+
+type UCurrentsData struct {
+	ID              int       `json:"id"`
+	MeasurementTime time.Time `json:"measurement_time"`
+	Latitude        float64   `json:"latitude"`
+	Longitude       float64   `json:"longitude"`
+	UCurrent        float32   `json:"u_current"`
+	CreatedAt       time.Time `json:"created_at"`
+}
+
+func (c *UCurrentsData) Value() float32 {
 	return c.UCurrent
 }
 
-func (c *CurrentsData) SetValue(val float32) {
+func (c *UCurrentsData) SetValue(val float32) {
 	c.UCurrent = val
+}
+
+func (c *VCurrentsData) Value() float32 {
+	return c.VCurrent
+}
+
+func (c *VCurrentsData) SetValue(val float32) {
+	c.VCurrent = val
 }
 
 func CurrentsDataToGeoJSON(data []CurrentsData) *geojson.FeatureCollection {

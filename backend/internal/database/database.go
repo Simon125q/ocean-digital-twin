@@ -34,6 +34,10 @@ type Service interface {
 	SaveCurrentsDataRaw(ctx context.Context, data []models.CurrentsData) error
 	GetLatestCurrentsTimestamp(ctx context.Context) (time.Time, error)
 	GetCurrentsData(ctx context.Context, startTime, endTime time.Time, minLat, minLon, maxLat, maxLon float64, rawData bool) ([]models.CurrentsData, error)
+	GetAllCurrentsLocations(ctx context.Context) ([]orb.Point, error)
+	GetUCurrentsDataAtLocation(ctx context.Context, point orb.Point) ([]models.UCurrentsData, error)
+	GetVCurrentsDataAtLocation(ctx context.Context, point orb.Point) ([]models.VCurrentsData, error)
+	UpdateUCurrentsData(ctx context.Context, data []models.UCurrentsData) error
 
 	GetCount() int
 	UpdateCount(int) error
