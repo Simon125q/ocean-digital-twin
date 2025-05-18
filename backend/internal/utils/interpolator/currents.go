@@ -14,14 +14,37 @@ func (i *Interpolator) RunLinearCurrentsInterpolationBasedOnTime(ctx context.Con
 	for _, p := range points {
 		uCurrentsData, err := i.db.GetUCurrentsDataAtLocation(ctx, p)
 		if err != nil {
-			i.logger.Error("error geting currents data at location", "loc", p, "err", err)
+			i.logger.Error("error geting u_currents data at location", "loc", p, "err", err)
 		}
 		interpolableUCurrentsDataSlice := make([]InterpolatableData, len(uCurrentsData))
 		for i := range uCurrentsData {
 			interpolableUCurrentsDataSlice[i] = &uCurrentsData[i]
 		}
+		for _, c := range uCurrentsData {
+			i.logger.Info("Before", "u_currents", c.UCurrent)
+		}
 		i.interpolateLinearyDataRow(interpolableUCurrentsDataSlice)
+		for _, c := range uCurrentsData {
+			i.logger.Info("After", "u_currents", c.UCurrent)
+		}
 		i.db.UpdateUCurrentsData(ctx, uCurrentsData)
+
+		vCurrentsData, err := i.db.GetVCurrentsDataAtLocation(ctx, p)
+		if err != nil {
+			i.logger.Error("error geting v_currents data at location", "loc", p, "err", err)
+		}
+		interpolableVCurrentsDataSlice := make([]InterpolatableData, len(vCurrentsData))
+		for i := range vCurrentsData {
+			interpolableVCurrentsDataSlice[i] = &vCurrentsData[i]
+		}
+		for _, c := range vCurrentsData {
+			i.logger.Info("Before", "v_currents", c.VCurrent)
+		}
+		i.interpolateLinearyDataRow(interpolableVCurrentsDataSlice)
+		for _, c := range vCurrentsData {
+			i.logger.Info("After", "v_currents", c.VCurrent)
+		}
+		i.db.UpdateVCurrentsData(ctx, vCurrentsData)
 	}
 	i.logger.Info("Interpolation of data based on time completed")
 	return nil

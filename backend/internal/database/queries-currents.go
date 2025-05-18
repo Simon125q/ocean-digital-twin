@@ -277,7 +277,22 @@ func (s *service) UpdateUCurrentsData(ctx context.Context, data []models.UCurren
 	for _, d := range data {
 		_, err := s.db.ExecContext(ctx, query, d.UCurrent, d.ID)
 		if err != nil {
-			return fmt.Errorf("error updating chlor_a: %w", err)
+			return fmt.Errorf("error updating u_current: %w", err)
+		}
+	}
+	return nil
+}
+
+func (s *service) UpdateVCurrentsData(ctx context.Context, data []models.VCurrentsData) error {
+	query := `
+        UPDATE currents_data
+        SET v_current = $1
+        WHERE id = $2
+    `
+	for _, d := range data {
+		_, err := s.db.ExecContext(ctx, query, d.VCurrent, d.ID)
+		if err != nil {
+			return fmt.Errorf("error updating v_current: %w", err)
 		}
 	}
 	return nil

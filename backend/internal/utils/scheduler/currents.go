@@ -9,7 +9,7 @@ import (
 func (u *Updater) updateCurrentsData(ctx context.Context) {
 	u.logger.Info("Starting currents data update")
 
-	latestTime, err := u.db.GetLatestChlorophyllTimestamp(ctx)
+	latestTime, err := u.db.GetLatestCurrentsTimestamp(ctx)
 	if err != nil {
 		u.logger.Error("Failed to get latest timestamp", "error", err)
 	}
@@ -26,7 +26,7 @@ func (u *Updater) updateCurrentsData(ctx context.Context) {
 	}
 
 	if !startTime.Before(endTime) {
-		u.logger.Info("Chlorophyll - Latest timestamp of data in db is after or equal the latest timestamp available in erddap - no data to update")
+		u.logger.Info("Currents - Latest timestamp of data in db is after or equal the latest timestamp available in erddap - no data to update")
 		return
 	}
 

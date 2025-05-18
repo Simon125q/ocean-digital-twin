@@ -38,6 +38,7 @@ type Service interface {
 	GetUCurrentsDataAtLocation(ctx context.Context, point orb.Point) ([]models.UCurrentsData, error)
 	GetVCurrentsDataAtLocation(ctx context.Context, point orb.Point) ([]models.VCurrentsData, error)
 	UpdateUCurrentsData(ctx context.Context, data []models.UCurrentsData) error
+	UpdateVCurrentsData(ctx context.Context, data []models.VCurrentsData) error
 
 	GetCount() int
 	UpdateCount(int) error
