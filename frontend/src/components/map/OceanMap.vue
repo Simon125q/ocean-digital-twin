@@ -86,7 +86,7 @@ function updateMapData() {
 
 async function loadChlorophyllData(map: MapboxMap) {
   try {
-    const chlorophyllGeoJson = await fetchChlorophyllData();
+    const chlorophyllGeoJson = await fetchChlorophyllData(true);
     allChlorophyllData.value = chlorophyllGeoJson;
     availableDates.value = extractAvailableDates(chlorophyllGeoJson);
 
