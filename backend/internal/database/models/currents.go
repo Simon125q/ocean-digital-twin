@@ -13,9 +13,11 @@ type CurrentsData struct {
 	MeasurementTime time.Time `json:"measurement_time"`
 	Latitude        float64   `json:"latitude"`
 	Longitude       float64   `json:"longitude"`
-	UCurrent        float32   `json:"u_current"`
-	VCurrent        float32   `json:"v_current"`
-	CreatedAt       time.Time `json:"created_at"`
+	//surface geostrophic eastward sea water velocity in m/s
+	UCurrent float32 `json:"u_current"`
+	//surface geostrophic northward sea water velocity in m/s
+	VCurrent  float32   `json:"v_current"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type VCurrentsData struct {
