@@ -1,6 +1,7 @@
 <template>
   <div class="map-wrapper">
     <div ref="mapContainer" class="map-container"></div>
+    <DataTypeSelector v-model="selectedDataType"/>
     <TimelineSlider
         :availableDates="availableDates"
         :onChange="handleDateChange"
@@ -14,8 +15,12 @@ import { ref, onMounted, onUnmounted, Ref, computed } from 'vue';
 import mapboxgl, {Map as MapboxMap, NavigationControl, GeoJSONSource } from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { fetchChlorophyllData } from '@/services/chlorophyllService';
+import { fetchCurrentsData } from '@/services/currentsService';
 import type { ChlorophyllFeatureCollection, ChlorophyllFeatureProperties } from '@/types/chlorophyll';
+import type { CurrentsFeatureCollection, CurrentsFeatureProperties } from '@/types/currents';
 import TimelineSlider from './TimelineSlider.vue'
+import DataTypeSelector from './DataTypeSelector.vue';
+import type { DataType } from './DataTypeSelector.vue';
 
 const mapboxAccessToken: string | undefined = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
@@ -35,6 +40,8 @@ const allChlorophyllData = ref<ChlorophyllFeatureCollection>({
   type: 'FeatureCollection',
   feature: []
 })
+
+const selectedDataType = ref<DataType>('chlorophyll');
 
 const availableDates = ref<Date[]>([]);
 
