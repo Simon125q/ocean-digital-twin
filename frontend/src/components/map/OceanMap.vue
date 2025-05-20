@@ -91,6 +91,13 @@ function updateMapData() {
   (mapInstance.getSource(SOURCE_ID) as GeoJSONSource).setData(filteredChlorophyllData.value);
 }
 
+const squareSvgString =
+  '<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" fill="black"/></svg>';
+const img = new Image(24, 24);
+
+img.onerror = (e) => console.error("Error loading SVG for map icon:", e);
+img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(squareSvgString);
+
 async function loadChlorophyllData(map: MapboxMap) {
   try {
     const chlorophyllGeoJson = await fetchChlorophyllData(true);
@@ -112,31 +119,65 @@ async function loadChlorophyllData(map: MapboxMap) {
       console.log('Chlorophyll data source added')
 
       map.addLayer({
-        id: LAYER_ID,
-        type: 'circle',
-        source: SOURCE_ID,
-        paint: {
-          'circle-radius': [
-            'interpolate',
-            ['linear'],
-            ['get', 'chlor_a'],
-            0, 4,
-            0.3, 8,
-            1, 12
+      id: LAYER_ID,
+      type: 'symbol',
+      source: SOURCE_ID,
+      layout: {
+        'icon-image': 'chlorophyll-square',
+        'icon-allow-overlap': false,
+        'icon-ignore-placement': true,
+        'icon-size': [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          5,  [
+            '*',
+            [
+              'interpolate',
+              ['linear'],
+              ['get', 'chlor_a'],
+              0, 1,
+              1, 1,
+            ],
+            0.5
           ],
-          'circle-color': [
-            'interpolate',
-            ['linear'],
-            ['get', 'chlor_a'],
-            0, '#ffffcc',
-            0.3, '#41b6c4',
-            1, '#0c2c84'
+          10, [
+            '*',
+            [
+              'interpolate',
+              ['linear'],
+              ['get', 'chlor_a'],
+              0, 1,
+              1, 1,
+            ],
+            3.5
           ],
-          'circle-opacity': 0.8,
-          'circle-stroke-width': 1,
-          'circle-stroke-color': '#ffffff'
-        },
-      });
+          15, [
+            '*',
+            [
+              'interpolate',
+              ['linear'],
+              ['get', 'chlor_a'],
+              0, 1,
+              1, 1,
+            ],
+            15.0
+          ]
+        ],
+      },
+      paint: {
+        'icon-color': [
+          'interpolate',
+          ['linear'],
+          ['get', 'chlor_a'],
+          0, '#ffffcc',
+          0.3, '#41b6c4',
+          1, '#0c2c84'
+        ],
+        'icon-opacity': 1.0,
+      },
+    });
+
       console.log('Chlorophyll data layer added');
 
       map.on('click', LAYER_ID, (e) => {
@@ -190,12 +231,14 @@ onMounted(() => {
     mapboxgl.accessToken = mapboxAccessToken;
     mapInstance = new MapboxMap({
       container: mapContainer.value, // container ID or HTML element
-      style: 'mapbox://styles/mapbox/streets-v12', // style URL
+      style: 'mapbox://styles/mapbox/outdoors-v12', // style URL
       center: [1.72, 41.00], // starting position [lng, lat]
       zoom: 10, // starting zoom
     });
 
     mapInstance.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+    mapInstance.addImage('chlorophyll-square', img, { sdf: true });
 
     mapInstance.on('load', () => {
       console.log('Map loaded!');
