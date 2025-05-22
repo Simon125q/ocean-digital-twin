@@ -59,6 +59,8 @@ const allCurrentsData = ref<CurrentsFeatureCollection>({
 
 const selectedDataType = ref<DataType>('chlorophyll');
 const availableDates = ref<Date[]>([]);
+const availableChlorophyllDates = ref<Date[]>([]);
+const availableCurrentsDates = ref<Date[]>([]);
 const selectedDate = ref<Date | null>(null);
 
 const filteredChlorophyllData = computed(() => {
@@ -101,7 +103,7 @@ const filteredCurrentsData = computed(() => {
   } as CurrentsFeatureCollection;
 });
 
-function extractAvailableDates(data: ChlorophyllFeatureCollection): Date[] {
+function extractAvailableDates(data: ChlorophyllFeatureCollection | CurrentsFeatureCollection): Date[] {
   const dateMap = new Map<string, Date>();
 
   data.features.forEach(feature => {
@@ -185,9 +187,10 @@ combinedArrowImg.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
 
 async function loadChlorophyllData(map: MapboxMap) {
   try {
-    const chlorophyllGeoJson = await fetchChlorophyllData(true);
+    const chlorophyllGeoJson = await fetchChlorophyllData(false);
     allChlorophyllData.value = chlorophyllGeoJson;
-    availableDates.value = extractAvailableDates(chlorophyllGeoJson);
+    availableChlorophyllDates.value = extractAvailableDates(chlorophyllGeoJson);
+    availableDates.value = availableChlorophyllDates.value
 
     if (availableDates.value.length > 0) {
       selectedDate.value = availableDates.value[availableDates.value.length - 1];
@@ -312,8 +315,9 @@ async function loadCurrentsData(map: MapboxMap) {
     const currentsGeoJson = await fetchCurrentsData(true);
     allCurrentsData.value = currentsGeoJson;
 
+    availableCurrentsDates.value = extractAvailableDates(currentsGeoJson)
     if (availableDates.value.length === 0) {
-      availableDates.value = extractAvailableDates(currentsGeoJson);
+      availableDates.value = availableCurrentsDates.value
       if (availableDates.value.length > 0) {
         selectedDate.value = availableDates.value[availableDates.value.length - 1];
       }
@@ -602,6 +606,14 @@ function setupCombinedCurrentsLayer(map: MapboxMap) {
   }
 }
 
+function updateAvailableDates() {
+  if (selectedDataType.value === 'chlorophyll') {
+    availableDates.value = availableChlorophyllDates.value
+  } else {
+    availableDates.value = availableCurrentsDates.value
+  }
+}
+
 watch(filteredCurrentsData, () => {
   if (mapInstance && selectedDataType.value === 'combined_current') {
     setupCombinedCurrentsLayer(mapInstance);
@@ -610,6 +622,7 @@ watch(filteredCurrentsData, () => {
 
 watch(selectedDataType, () => {
   updateMapData();
+  updateAvailableDates();
 });
 
 onMounted(() => {
