@@ -66,9 +66,50 @@ func CurrentsDataToGeoJSON(data []CurrentsData) *geojson.FeatureCollection {
 				"measurement_time": d.MeasurementTime,
 				"u_current":        d.UCurrent,
 				"v_current":        d.VCurrent,
+				"current_angle":    calculateCurrentAngle(d.UCurrent, d.VCurrent),
+				"magnitude":        calculateMagnitude(d.UCurrent, d.VCurrent),
 			}
 			fc.Append(feature)
 		}
 	}
 	return fc
+}
+
+func calculateCurrentAngle(u, v float32) float32 {
+	if u == 0 && v == 0 {
+		return 0.0
+	}
+
+	if u == 0 {
+		if v > 0 {
+			return 0.0 // North
+		}
+		return 180.0 // South
+	}
+
+	if v == 0 {
+		if u > 0 {
+			return 90.0 // East
+		}
+		return 270.0 // West
+	}
+
+	radians := math.Atan2(float64(v), float64(u))
+
+	angleFromEastDegrees := radians * (180.0 / math.Pi)
+
+	// Adjust to Mapbox's system where 0° is North and angles increase clockwise.
+	mapboxAngle := 90.0 - angleFromEastDegrees
+
+	normalizedAngle := math.Mod(mapboxAngle, 360.0)
+
+	if normalizedAngle < 0 {
+		normalizedAngle += 360.0
+	}
+
+	return float32(normalizedAngle)
+}
+
+func calculateMagnitude(u, v float32) float32 {
+	return float32(math.Sqrt(math.Pow(float64(u), 2) + math.Pow(float64(v), 2)))
 }
