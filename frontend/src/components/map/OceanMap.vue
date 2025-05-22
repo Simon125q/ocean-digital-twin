@@ -148,15 +148,16 @@ function updateMapData() {
 const squareSvgString =
   '<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" fill="black"/></svg>';
 const northArrowSvgString =
-  '<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L4 14h16L12 2z" fill="black"/></svg>';
+  '<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L12 18M12 2L7 7M12 2L17 7" stroke="black" stroke-width="2" fill="none"/></svg>';
 const southArrowSvgString =
-  '<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 22L4 10h16L12 22z" fill="black"/></svg>';
+  '<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 22L12 6M12 22L7 17M12 22L17 17" stroke="black" stroke-width="2" fill="none"/></svg>';
 const eastArrowSvgString =
-  '<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22 12L10 4v16L22 12z" fill="black"/></svg>';
+  '<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22 12L6 12M22 12L17 7M22 12L17 17" stroke="black" stroke-width="2" fill="none"/></svg>';
 const westArrowSvgString =
-  '<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M2 12L14 4v16L2 12z" fill="black"/></svg>';
+  '<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M2 12L18 12M2 12L7 7M2 12L7 17" stroke="black" stroke-width="2" fill="none"/></svg>';
 const combinedArrowSvgString =
-  '<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L16 8H8L12 2z M22 12L16 16V8L22 12z M12 22L8 16H16L12 22z M2 12L8 8V16L2 12z" fill="black"/></svg>';
+  '<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L12 22M12 2L7 7M12 2L17 7" stroke="black" stroke-width="2" fill="none"/></svg>';
+
 
 const squareImg = new Image(24, 24);
 squareImg.onerror = (e) => console.error("Error loading SVG for square icon:", e);
