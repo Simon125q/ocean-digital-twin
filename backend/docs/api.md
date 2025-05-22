@@ -61,12 +61,14 @@ Provides surface currents data in GeoJSON format.
 
 #### Response Fields
 
-| Field              | Description                                             |
-| ------------------ | ------------------------------------------------------- |
-| `id`               | Unique identifier of the data record in the database    |
-| `measurement_time` | Timestamp when the data was measured                    |
-| `v_current`        | surface geostrophic northward sea water velocity in m/s |
-| `u_current`        | surface geostrophic eastward sea water velocity in m/s  |
+| Field              | Description                                                        |
+| ------------------ | ------------------------------------------------------------------ |
+| `id`               | Unique identifier of the data record in the database               |
+| `measurement_time` | Timestamp when the data was measured                               |
+| `v_current`        | surface geostrophic northward sea water velocity in m/s            |
+| `u_current`        | surface geostrophic eastward sea water velocity in m/s             |
+| `current_angle`    | angle of combined currents counted clockwise from north in degrees |
+| `magnitude`        | surface geostrophic combined sea water velocity in m/s             |
 
 #### Query Parameters
 
