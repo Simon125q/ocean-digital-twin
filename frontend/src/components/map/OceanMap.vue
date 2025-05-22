@@ -409,11 +409,17 @@ function setupCurrentsLayer(
           'interpolate',
           ['linear'],
           ['abs', ['get', dataType]],
-          0, '#ffffcc',
-          0.03, '#41b6c4',
-          0.13, '#0c2c84'
+          0, '#ffffbb',
+          0.005, '#c9EFDC',
+          0.02, '#41b6c4',
+          0.05, '#418ac4',
+          0.14, '#3136bb',
+          0.5, '#1e0755',
         ],
-        'icon-opacity': 1.0,
+        'icon-opacity': 0.8,
+        'icon-halo-color': '#0000aa',
+        'icon-halo-width': 1,
+        'icon-halo-blur': 2,
       },
     });
 
@@ -493,9 +499,9 @@ function setupCombinedCurrentsLayer(map: MapboxMap) {
               'interpolate',
               ['linear'],
               ['get', 'magnitude'],
-              0, 0.2,
-              0.3, 0.9,
-              1, 1.6
+              0, 0.4,
+              0.5, 1.3,
+              1, 2.0
             ],
             3
           ],
@@ -505,9 +511,9 @@ function setupCombinedCurrentsLayer(map: MapboxMap) {
               'interpolate',
               ['linear'],
               ['get', 'magnitude'],
-              0, 0.2,
-              0.3, 0.9,
-              1, 1.6
+              0, 0.4,
+              0.5, 1.3,
+              1, 2.0
             ],
             6
           ],
@@ -517,9 +523,9 @@ function setupCombinedCurrentsLayer(map: MapboxMap) {
               'interpolate',
               ['linear'],
               ['get', 'magnitude'],
-              0, 0.2,
-              0.3, 0.9,
-              1, 1.6
+              0, 0.4,
+              0.5, 1.3,
+              1, 2.0
             ],
             9
           ]
@@ -531,11 +537,17 @@ function setupCombinedCurrentsLayer(map: MapboxMap) {
           'interpolate',
           ['linear'],
           ['get', 'magnitude'],
-          0, '#ffffcc',
-          0.03, '#41b6c4',
-          0.13, '#0c2c84'
+          0, '#ffffbb',
+          0.005, '#c9EFDC',
+          0.02, '#41b6c4',
+          0.05, '#418ac4',
+          0.14, '#3136bb',
+          0.5, '#1e0755',
         ],
-        'icon-opacity': 1.0,
+        'icon-opacity': 1,
+        'icon-halo-color': '#0000aa',
+        'icon-halo-width': 1,
+        'icon-halo-blur': 2,
       },
     });
 
