@@ -5,6 +5,8 @@ export interface CurrentsFeatureProperties {
   measurement_time: string
   v_current: number
   u_current: number
+  current_angle: number
+  magnitude: number
 }
 
 export type CurrentsGeoJSONFeature = GeoJSON.Feature<GeoJSON.Point, CurrentsFeatureProperties>

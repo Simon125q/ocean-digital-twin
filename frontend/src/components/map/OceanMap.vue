@@ -409,8 +409,8 @@ function setupCurrentsLayer(
           ['linear'],
           ['abs', ['get', dataType]],
           0, '#ffffcc',
-          0.3, '#41b6c4',
-          1, '#0c2c84'
+          0.03, '#41b6c4',
+          0.13, '#0c2c84'
         ],
         'icon-opacity': 1.0,
       },
@@ -479,30 +479,7 @@ function setupCombinedCurrentsLayer(map: MapboxMap) {
         'icon-allow-overlap': false,
         'icon-ignore-placement': true,
         'icon-rotate': [
-          'case',
-          ['==', ['get', 'u_current'], 0],
-          ['case',
-            ['>', ['get', 'v_current'], 0],
-            0,  // North
-            180 // South
-          ],
-          [
-            'case',
-            ['==', ['get', 'v_current'], 0],
-            ['case',
-              ['>', ['get', 'u_current'], 0],
-              90,  // East
-              270  // West
-            ],
-            [
-              '+',
-              ['*',
-                ['atan', ['/', ['get', 'v_current'], ['get', 'u_current']]],
-                57.2958  // Convert radians to degrees
-              ],
-              ['case', ['<', ['get', 'u_current'], 0], 180, 0]
-            ]
-          ]
+          'get', 'current_angle',
         ],
         'icon-size': [
           'interpolate',
@@ -513,16 +490,10 @@ function setupCombinedCurrentsLayer(map: MapboxMap) {
             [
               'interpolate',
               ['linear'],
-              [
-                'sqrt',
-                ['+',
-                  ['*', ['get', 'u_current'], ['get', 'u_current']],
-                  ['*', ['get', 'v_current'], ['get', 'v_current']]
-                ]
-              ],
-              0, 0.5,
-              0.5, 1.5,
-              1, 2.5
+              ['get', 'magnitude'],
+              0, 0.3,
+              0.4, 1,
+              1, 1.7
             ],
             3
           ],
@@ -531,13 +502,7 @@ function setupCombinedCurrentsLayer(map: MapboxMap) {
             [
               'interpolate',
               ['linear'],
-              [
-                'sqrt',
-                ['+',
-                  ['*', ['get', 'u_current'], ['get', 'u_current']],
-                  ['*', ['get', 'v_current'], ['get', 'v_current']]
-                ]
-              ],
+              ['get', 'magnitude'],
               0, 0.5,
               0.5, 1.5,
               1, 2.5
@@ -549,13 +514,7 @@ function setupCombinedCurrentsLayer(map: MapboxMap) {
             [
               'interpolate',
               ['linear'],
-              [
-                'sqrt',
-                ['+',
-                  ['*', ['get', 'u_current'], ['get', 'u_current']],
-                  ['*', ['get', 'v_current'], ['get', 'v_current']]
-                ]
-              ],
+              ['get', 'magnitude'],
               0, 0.5,
               0.5, 1.5,
               1, 2.5
@@ -569,13 +528,7 @@ function setupCombinedCurrentsLayer(map: MapboxMap) {
         'icon-color': [
           'interpolate',
           ['linear'],
-          [
-            'sqrt',
-            ['+',
-              ['*', ['get', 'u_current'], ['get', 'u_current']],
-              ['*', ['get', 'v_current'], ['get', 'v_current']]
-            ]
-          ],
+          ['get', 'magnitude'],
           0, '#ffffcc',
           0.3, '#41b6c4',
           1, '#0c2c84'
@@ -593,21 +546,24 @@ function setupCombinedCurrentsLayer(map: MapboxMap) {
         const properties = feature.properties as CurrentsFeatureProperties;
 
         const uCurrentValue = typeof properties.u_current === 'number' ?
-          properties.u_current.toFixed(2) : 'N/A';
+          properties.u_current.toFixed(3) : 'N/A';
         const vCurrentValue = typeof properties.v_current === 'number' ?
-          properties.v_current.toFixed(2) : 'N/A';
+          properties.v_current.toFixed(3) : 'N/A';
 
-        const magnitude = Math.sqrt(
-          Math.pow(properties.u_current, 2) + Math.pow(properties.v_current, 2)
-        ).toFixed(2);
+
+        const angle = typeof properties.current_angle === 'number' ?
+          properties.current_angle.toFixed(3) : 'N/A';
+        const magnitude = typeof properties.magnitude === 'number' ?
+          properties.magnitude.toFixed(3) : 'N/A';
 
         const description =
           `
             <strong>Combined Current Data</strong><br>
             ID: ${properties.id}<br>
-            West-East: ${uCurrentValue} m/s<br>
-            North-South: ${vCurrentValue} m/s<br>
+            North-South (v): ${vCurrentValue} m/s<br>
+            West-East (u): ${uCurrentValue} m/s<br>
             Magnitude: ${magnitude} m/s<br>
+            Angle: ${angle} m/s<br>
             Time: ${new Date(properties.measurement_time).toLocaleString()}
           `;
 
@@ -631,6 +587,12 @@ function setupCombinedCurrentsLayer(map: MapboxMap) {
     });
   }
 }
+
+watch(filteredCurrentsData, () => {
+  if (mapInstance && selectedDataType.value === 'combined_current') {
+    setupCombinedCurrentsLayer(mapInstance);
+  }
+});
 
 watch(selectedDataType, () => {
   updateMapData();
