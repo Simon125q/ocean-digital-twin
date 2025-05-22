@@ -1,6 +1,7 @@
 <template>
   <div class="map-wrapper">
     <div ref="mapContainer" class="map-container"></div>
+    <FixedLogo/>
     <DataTypeSelector v-model="selectedDataType"/>
     <TimelineSlider
         :availableDates="availableDates"
@@ -20,6 +21,7 @@ import type { ChlorophyllFeatureCollection, ChlorophyllFeatureProperties } from 
 import type { CurrentsFeatureCollection, CurrentsFeatureProperties } from '@/types/currents';
 import TimelineSlider from './TimelineSlider.vue'
 import DataTypeSelector from './DataTypeSelector.vue';
+import FixedLogo from './FixedLogo.vue';
 import type { DataType } from './DataTypeSelector.vue';
 
 const mapboxAccessToken: string | undefined = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
