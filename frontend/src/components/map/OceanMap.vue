@@ -3,11 +3,32 @@
     <div ref="mapContainer" class="map-container"></div>
     <FixedLogo/>
     <DataTypeSelector v-model="selectedDataType"/>
+    <ColorScaleLegend
+        :color-stops="currentsScale"
+        unit="m/s"
+        title="Current Speed"
+        height="250px"
+        bar-witdth="25px"
+        witdth="180px"
+        v-if="selectedDataType === 'v_current' ||
+              selectedDataType === 'u_current' ||
+              selectedDataType === 'combined_current'"
+        />
+    <ColorScaleLegend
+        :color-stops="chlorophyllScale"
+        unit="ug"
+        title="Chlorophyll concentration"
+        height="250px"
+        bar-witdth="25px"
+        witdth="180px"
+        v-if="selectedDataType === 'chlorophyll'"
+        />
     <TimelineSlider
         :availableDates="availableDates"
         :onChange="handleDateChange"
         :key="availableDates.length"
     />
+
   </div>
 </template>
 
@@ -22,6 +43,7 @@ import type { CurrentsFeatureCollection, CurrentsFeatureProperties } from '@/typ
 import TimelineSlider from './TimelineSlider.vue'
 import DataTypeSelector from './DataTypeSelector.vue';
 import FixedLogo from './FixedLogo.vue';
+import ColorScaleLegend from './ColorScaleLegend.vue'
 import type { DataType } from './DataTypeSelector.vue';
 
 const mapboxAccessToken: string | undefined = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
@@ -31,6 +53,23 @@ if (!mapboxAccessToken) {
     'Mapbox access token is missing. Please set VITE_MAPBOX_ACCESS_TOKEN in your .env file.'
   );
 }
+
+const currentsScale = ref([
+    [0, '#ffffbb'],
+    [0.005, '#c9EFDC'],
+    [0.02, '#41b6c4'],
+    [0.05, '#418ac4'],
+    [0.14, '#3136bb'],
+    [0.5, '#1e0755'],
+])
+const currentsColorSteps = currentsScale.value.flatMap(stop => [stop[0], stop[1]])
+
+const chlorophyllScale = ref([
+    [0, '#ffffcc'],
+    [0.3, '#41b6c4'],
+    [1, '#0c2c84']
+])
+const chlorophyllColorSteps = chlorophyllScale.value.flatMap(stop => [stop[0], stop[1]])
 
 const mapContainer: Ref<HTMLDivElement | null> = ref(null);
 let mapInstance: MapboxMap | null = null;
@@ -261,9 +300,7 @@ async function loadChlorophyllData(map: MapboxMap) {
           'interpolate',
           ['linear'],
           ['get', 'chlor_a'],
-          0, '#ffffcc',
-          0.3, '#41b6c4',
-          1, '#0c2c84'
+          ...chlorophyllColorSteps
         ],
         'icon-opacity': 1.0,
       },
@@ -415,12 +452,7 @@ function setupCurrentsLayer(
           'interpolate',
           ['linear'],
           ['abs', ['get', dataType]],
-          0, '#ffffbb',
-          0.005, '#c9EFDC',
-          0.02, '#41b6c4',
-          0.05, '#418ac4',
-          0.14, '#3136bb',
-          0.5, '#1e0755',
+          ...currentsColorSteps
         ],
         'icon-opacity': 0.8,
         'icon-halo-color': '#0000aa',
@@ -543,12 +575,7 @@ function setupCombinedCurrentsLayer(map: MapboxMap) {
           'interpolate',
           ['linear'],
           ['get', 'magnitude'],
-          0, '#ffffbb',
-          0.005, '#c9EFDC',
-          0.02, '#41b6c4',
-          0.05, '#418ac4',
-          0.14, '#3136bb',
-          0.5, '#1e0755',
+          ...currentsColorSteps
         ],
         'icon-opacity': 1,
         'icon-halo-color': '#0000aa',
