@@ -360,6 +360,7 @@ function setupCurrentsLayer(
         ],
         'icon-allow-overlap': false,
         'icon-ignore-placement': true,
+        'icon-rotation-alignment': 'map',
         'icon-size': [
           'interpolate',
           ['linear'],
@@ -481,6 +482,7 @@ function setupCombinedCurrentsLayer(map: MapboxMap) {
         'icon-rotate': [
           'get', 'current_angle',
         ],
+        'icon-rotation-alignment': 'map',
         'icon-size': [
           'interpolate',
           ['linear'],
@@ -491,9 +493,9 @@ function setupCombinedCurrentsLayer(map: MapboxMap) {
               'interpolate',
               ['linear'],
               ['get', 'magnitude'],
-              0, 0.3,
-              0.4, 1,
-              1, 1.7
+              0, 0.2,
+              0.3, 0.9,
+              1, 1.6
             ],
             3
           ],
@@ -503,9 +505,9 @@ function setupCombinedCurrentsLayer(map: MapboxMap) {
               'interpolate',
               ['linear'],
               ['get', 'magnitude'],
-              0, 0.5,
-              0.5, 1.5,
-              1, 2.5
+              0, 0.2,
+              0.3, 0.9,
+              1, 1.6
             ],
             6
           ],
@@ -515,9 +517,9 @@ function setupCombinedCurrentsLayer(map: MapboxMap) {
               'interpolate',
               ['linear'],
               ['get', 'magnitude'],
-              0, 0.5,
-              0.5, 1.5,
-              1, 2.5
+              0, 0.2,
+              0.3, 0.9,
+              1, 1.6
             ],
             9
           ]
@@ -530,8 +532,8 @@ function setupCombinedCurrentsLayer(map: MapboxMap) {
           ['linear'],
           ['get', 'magnitude'],
           0, '#ffffcc',
-          0.3, '#41b6c4',
-          1, '#0c2c84'
+          0.03, '#41b6c4',
+          0.13, '#0c2c84'
         ],
         'icon-opacity': 1.0,
       },
