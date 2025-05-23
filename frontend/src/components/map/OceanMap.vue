@@ -66,8 +66,8 @@ const currentsColorSteps = currentsScale.value.flatMap(stop => [stop[0], stop[1]
 
 const chlorophyllScale = ref([
     [0, '#ffffcc'],
-    [0.3, '#41b6c4'],
-    [1, '#0c2c84']
+    [0.4, '#41b6c4'],
+    [3, '#0c2c84']
 ])
 const chlorophyllColorSteps = chlorophyllScale.value.flatMap(stop => [stop[0], stop[1]])
 
