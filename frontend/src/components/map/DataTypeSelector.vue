@@ -40,17 +40,17 @@ const options: DataTypeOption[] = [
 
 interface Props {
   modelValue: DataType;
-  showRawData: boolean; // Add showRawData prop
+  showRawData: boolean;
 }
 
 const props = defineProps<Props>();
 const emit = defineEmits<{
   (e: 'update:modelValue', value: DataType): void;
-  (e: 'update:showRawData', value: boolean): void; // Emit event for raw data toggle
+  (e: 'update:showRawData', value: boolean): void;
 }>();
 
 const selectedType = ref(props.modelValue);
-const showRawData = ref(props.showRawData); // Initialize from prop
+const showRawData = ref(props.showRawData);
 
 function selectType(type: DataType) {
   selectedType.value = type;
@@ -111,7 +111,6 @@ function toggleRawData() {
 
 }
 
-/* The switch - the box around the slider */
 .switch {
   position: relative;
   display: inline-block;
@@ -119,14 +118,12 @@ function toggleRawData() {
   height: 17px;
 }
 
-/* Hide default HTML checkbox */
 .switch input {
   opacity: 0;
   width: 0;
   height: 0;
 }
 
-/* The slider */
 .slider {
   position: absolute;
   cursor: pointer;
@@ -165,7 +162,6 @@ input:checked+.slider:before {
   transform: translateX(13px);
 }
 
-/* Rounded sliders */
 .slider.round {
   border-radius: 17px;
 }

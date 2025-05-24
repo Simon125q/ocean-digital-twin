@@ -2,7 +2,10 @@
   <div class="map-wrapper">
     <div ref="mapContainer" class="map-container"></div>
     <FixedLogo/>
-    <DataTypeSelector v-model="selectedDataType"/>
+    <DataTypeSelector
+      v-model="selectedDataType"
+      v-model:showRawData="showRawData"
+      />
     <ColorScaleLegend
         :color-stops="currentsScale"
         unit="m/s"
@@ -98,6 +101,7 @@ const allCurrentsData = ref<CurrentsFeatureCollection>({
   features: []
 });
 
+const showRawData = ref<Boolean>(false);
 const selectedDataType = ref<DataType>('chlorophyll');
 const availableDates = ref<Date[]>([]);
 const availableChlorophyllDates = ref<Date[]>([]);
@@ -228,7 +232,7 @@ combinedArrowImg.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
 
 async function loadChlorophyllData(map: MapboxMap) {
   try {
-    const chlorophyllGeoJson = await fetchChlorophyllData(false);
+    const chlorophyllGeoJson = await fetchChlorophyllData(showRawData.value);
     allChlorophyllData.value = chlorophyllGeoJson;
     availableChlorophyllDates.value = extractAvailableDates(chlorophyllGeoJson);
     availableDates.value = availableChlorophyllDates.value
@@ -351,7 +355,7 @@ async function loadChlorophyllData(map: MapboxMap) {
 
 async function loadCurrentsData(map: MapboxMap) {
   try {
-    const currentsGeoJson = await fetchCurrentsData(true);
+    const currentsGeoJson = await fetchCurrentsData(showRawData);
     allCurrentsData.value = currentsGeoJson;
 
     availableCurrentsDates.value = extractAvailableDates(currentsGeoJson)
@@ -644,6 +648,8 @@ function updateAvailableDates() {
 }
 
 watch(filteredCurrentsData, () => {
+  //TODO: OPTIMIZE: probably we shouldnt call the setupCombinedCurrentsLayer function every time the
+  //filteredCurrentsData is changed, only once should be enough
   if (mapInstance && selectedDataType.value === 'combined_current') {
     setupCombinedCurrentsLayer(mapInstance);
   }
@@ -653,6 +659,18 @@ watch(selectedDataType, () => {
   updateMapData();
   updateAvailableDates();
 });
+
+watch(showRawData, () => {
+//TODO: OPTIMIZE: possible optimization not to load newly data after each shawRawData change but
+//rather load raw data for the first time then and after that only change the displayed data
+  if (mapInstance) {
+    loadChlorophyllData(mapInstance)
+    loadCurrentsData(mapInstance)
+    updateMapData()
+    console.log("Show Raw Data Changed")
+    console.log(showRawData)
+  }
+})
 
 onMounted(() => {
   if (!mapboxAccessToken) {
